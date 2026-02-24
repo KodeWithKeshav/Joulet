@@ -154,7 +154,7 @@ export default function JouletApp() {
   const [consumerWallet, setConsumerWallet] = useState({ jlt: 0, usd: 2000, energyCredits: 0 });
 
   // Market State
-  const JLT_RATE = 0.50; // 1 JLT = $0.50
+  const JLT_RATE = Math.max(0.10, (miningDifficulty / 10) * 0.50); // Dynamic pricing based on network difficulty
 
   // --- Check API & Blockchain Connection ---
   useEffect(() => {
@@ -208,6 +208,22 @@ export default function JouletApp() {
 
     checkConnections();
     const interval = setInterval(checkConnections, 5000); // Check every 5 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const apiTradesRef = useRef(0);
+  useEffect(() => {
+    const fetchTrades = async () => {
+      const h = await apiCall('/api/ledger/trades');
+      if (h && h.trades) {
+        if (h.trades.length > apiTradesRef.current) {
+          const newTrades = h.trades.slice(apiTradesRef.current);
+          newTrades.forEach(t => addBlock(t.type || 'TRADE', t.details));
+          apiTradesRef.current = h.trades.length;
+        }
+      }
+    };
+    const interval = setInterval(fetchTrades, 2000);
     return () => clearInterval(interval);
   }, []);
 

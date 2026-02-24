@@ -435,12 +435,34 @@ def reset_metrics():
     metrics.accumulated_energy = 0
     metrics.current_production = 0
     metrics.report_history.clear()
+    trade_events.clear()
     
     return jsonify({
         "message": "Metrics reset",
         "metrics": metrics.to_dict()
     }), 200
 
+
+# Global trade events cache
+trade_events = []
+
+@app.route('/api/ledger/trade', methods=['POST'])
+def record_trade():
+    """Endpoint for external wallets to signal a DEX trade for the LIVE LEDGER"""
+    try:
+        data = request.json
+        trade_events.append({
+            "timestamp": datetime.now().isoformat(),
+            "type": "TRADE",
+            "details": data.get("details", "")
+        })
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@app.route('/api/ledger/trades', methods=['GET'])
+def get_trades():
+    return jsonify({"trades": trade_events})
 
 @app.route('/api/config', methods=['GET'])
 def get_config():

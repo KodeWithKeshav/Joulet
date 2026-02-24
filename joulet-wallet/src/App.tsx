@@ -6,22 +6,16 @@ import ActivityView from './components/ActivityView';
 import DeviceView from './components/DeviceView';
 import GridStatusView from './components/GridStatusView';
 import ConfirmModal from './components/ConfirmModal';
-import { Activity, LayoutList, Cpu, Zap, RadioTower, AlertTriangle } from 'lucide-react';
+import LoginScreen from './components/LoginScreen';
+import { Activity, LayoutList, Cpu, Zap, RadioTower, AlertTriangle, LogOut } from 'lucide-react';
 
 function App() {
-  const { isInitialized, initializeWallet, pendingEnergy, isBrownout, fetchLiveStatus, isApiConnected } = useWalletStore();
+  const { authStatus, logout, pendingEnergy, isBrownout, fetchLiveStatus, isApiConnected } = useWalletStore();
   const [activeTab, setActiveTab] = useState<'assets' | 'activity' | 'devices' | 'grid'>('assets');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Mock Merkle Root
   const mockMerkle = "0x8a3c9b7e4d2f1a6b0c8e9d4f1a2b3c4d5e6f7a8b9c0... (Mocked)";
-
-  // Bootstrap Wallet
-  useEffect(() => {
-    if (!isInitialized) {
-      initializeWallet();
-    }
-  }, [isInitialized, initializeWallet]);
 
   // Live Blockchain & API Data Feeds
   useEffect(() => {
@@ -41,31 +35,14 @@ function App() {
   }, [isBrownout, pendingEnergy]);
 
 
-  if (!isInitialized) {
-    return (
-      <div className="min-h-screen bg-[#05080E] flex flex-col items-center justify-center text-white font-sans">
-        <div className="w-full max-w-[420px] bg-[#0B101E]/80 backdrop-blur-2xl rounded-[24px] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] border border-white/5 flex flex-col items-center justify-center p-12 relative overflow-hidden h-[500px]">
-          <div className="absolute inset-0 bg-joulet-green/5 blur-3xl opacity-50 rounded-3xl pointer-events-none" />
-          <Zap size={56} className="text-joulet-green mb-6 drop-shadow-[0_0_15px_rgba(0,230,118,0.6)] animate-pulse relative z-10" />
-          <h1 className="text-2xl font-black mb-3 text-center tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-joulet-green to-joulet-blue relative z-10">Joulet Core</h1>
-          <p className="text-slate-400 text-center text-xs font-medium tracking-widest uppercase mb-8 leading-relaxed relative z-10">Initializing<br />Hardware Security Module...</p>
-          <div className="w-10 h-10 rounded-full border-[3px] border-white/10 border-t-joulet-blue animate-spin shadow-[0_0_15px_rgba(0,229,255,0.4)] relative z-10"></div>
-        </div>
-      </div>
-    );
+  if (authStatus === 'locked') {
+    return <LoginScreen />;
   }
 
   return (
     <div className="min-h-screen w-screen bg-[#05080E] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#05080E] to-black text-white font-sans flex relative overflow-hidden">
       {/* Subtle Grid Texture Background for the whole screen */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-
-      {/* 
-        Full Screen Desktop Layout Strategy:
-        - Left Sidebar (Fixed Width, Navigation)
-        - Center Content (Fluid width, main dashboard views)
-        - Right Sidebar (Fixed Width, Live Grid / Constants)
-      */}
 
       {/* Desktop Navigation Sidebar (Hidden on Mobile) */}
       <aside className="hidden lg:flex w-[240px] flex-col border-r border-white/5 bg-[#0B101E]/60 backdrop-blur-2xl z-20 shrink-0 shadow-2xl">
@@ -76,18 +53,29 @@ function App() {
           <span className="font-black text-white tracking-wider text-xl">JOULET</span>
         </div>
 
-        <div className="flex-1 px-4 py-2 space-y-2">
-          <SidebarButton active={activeTab === 'assets'} onClick={() => setActiveTab('assets')} icon={<Zap size={20} />} label="Wallet Assets" accentColor="joulet-green" />
-          <SidebarButton active={activeTab === 'activity'} onClick={() => setActiveTab('activity')} icon={<LayoutList size={20} />} label="Network Logs" accentColor="joulet-blue" />
-          <SidebarButton active={activeTab === 'devices'} onClick={() => setActiveTab('devices')} icon={<Cpu size={20} />} label="IOT Devices" accentColor="purple-400" />
-          <div className="xl:hidden">
-            {/* Only show "Grid Status" button in sidebar if screen is < 1200px where right pane dissolves */}
-            <SidebarButton active={activeTab === 'grid'} onClick={() => setActiveTab('grid')} icon={<Activity size={20} />} label="Grid Diagnostics" accentColor="yellow-400" />
+        <div className="flex-1 px-4 py-2 flex flex-col justify-between">
+          <div className="space-y-2">
+            <SidebarButton active={activeTab === 'assets'} onClick={() => setActiveTab('assets')} icon={<Zap size={20} />} label="Wallet Assets" accentColor="joulet-green" />
+            <SidebarButton active={activeTab === 'activity'} onClick={() => setActiveTab('activity')} icon={<LayoutList size={20} />} label="Network Logs" accentColor="joulet-blue" />
+            <SidebarButton active={activeTab === 'devices'} onClick={() => setActiveTab('devices')} icon={<Cpu size={20} />} label="IOT Devices" accentColor="purple-400" />
+            <div className="xl:hidden">
+              <SidebarButton active={activeTab === 'grid'} onClick={() => setActiveTab('grid')} icon={<Activity size={20} />} label="Grid Diagnostics" accentColor="yellow-400" />
+            </div>
+          </div>
+
+          <div className="pb-4">
+            <div
+              onClick={logout}
+              className="group flex items-center space-x-3 w-full p-4 rounded-2xl cursor-pointer transition-all duration-300 relative overflow-hidden border border-transparent hover:bg-white/5 text-slate-500 hover:text-red-400"
+            >
+              <LogOut size={20} className="group-hover:-translate-x-1 transition-transform" />
+              <span className="text-[11px] font-black uppercase tracking-widest transition-colors text-slate-500 group-hover:text-red-400">Switch Profile</span>
+            </div>
           </div>
         </div>
 
-        <div className="p-6 border-t border-white/5">
-          <div className="flex items-center space-x-2 bg-black/40 rounded-xl p-3 border border-white/5">
+        <div className="p-6 border-t border-white/5 bg-black/20">
+          <div className="flex items-center space-x-2 bg-black/40 rounded-xl p-3 border border-white/5 group">
             <div className="relative flex h-2 w-2">
               <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isApiConnected ? 'bg-joulet-green' : 'bg-red-500'} opacity-75`}></span>
               <span className={`relative inline-flex rounded-full h-2 w-2 ${isApiConnected ? 'bg-joulet-green shadow-[0_0_8px_#00E676]' : 'bg-red-500 shadow-[0_0_8px_#EF4444]'}`}></span>

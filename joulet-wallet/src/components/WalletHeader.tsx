@@ -1,13 +1,17 @@
 import React from 'react';
 import { useWalletStore } from '../store/walletStore';
+import { HARDHAT_PROFILES } from '../core/keyManager';
 import { Copy, CheckCircle2 } from 'lucide-react';
 
 const WalletHeader: React.FC = () => {
-    const { walletKeys, isInitialized } = useWalletStore();
+    const { walletKeys, authStatus, activeProfileId } = useWalletStore();
     const network = { name: 'Joulet Protocol' };
     const [copied, setCopied] = React.useState(false);
 
-    if (!isInitialized || !walletKeys) return null;
+    if (authStatus === 'locked' || !walletKeys || activeProfileId === null) return null;
+
+    const currentProfile = HARDHAT_PROFILES.find(p => p.id === activeProfileId);
+    const profileName = currentProfile ? currentProfile.name : 'Unknown Persona';
 
     const truncateAddress = (addr: string) => {
         if (!addr) return '';
@@ -48,7 +52,7 @@ const WalletHeader: React.FC = () => {
                     onClick={handleCopy}
                     className="group flex flex-col items-end cursor-pointer"
                 >
-                    <span className="font-bold text-xs text-white/90 group-hover:text-white transition-colors">Account 1</span>
+                    <span className="font-bold text-xs text-white/90 group-hover:text-white transition-colors">{profileName}</span>
                     <div className="flex items-center text-slate-400 text-[10px] mt-0.5 space-x-1 group-hover:text-joulet-blue transition-colors">
                         <span className="font-mono tracking-wider">{truncateAddress(walletKeys.address)}</span>
                         {copied ? (

@@ -268,8 +268,8 @@
       ]
     },
     "/Users/keshavs/Desktop/Joulet_Beta/blockchain/contracts/JouletToken.sol": {
-      "lastModificationDate": 1771950785820,
-      "contentHash": "e244dce87bbda2ea7c41de8e5d739004",
+      "lastModificationDate": 1771962237191,
+      "contentHash": "07a22af68ab060ea12cb69147be6d6d4",
       "sourceName": "contracts/JouletToken.sol",
       "solcConfig": {
         "version": "0.8.20",

@@ -10,7 +10,10 @@ contract JouletToken is ERC20, Ownable {
 
     event EnergyReported(uint256 kWhProduced, uint256 tokensMinted);
 
-    constructor() ERC20("Joulet", "JLT") Ownable(msg.sender) {}
+    constructor() ERC20("Joulet", "JLT") Ownable(msg.sender) {
+        // Mint an initial genesis supply to the deployer so they can seed the automated DEX liquidity pool
+        _mint(msg.sender, 500000 * 10 ** decimals());
+    }
 
     function setEnergyMeter(address _meterAddress) public onlyOwner {
         energyMeter = _meterAddress;
