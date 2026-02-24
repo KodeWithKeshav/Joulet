@@ -112,7 +112,7 @@ pip install -q -r requirements.txt 2>/dev/null || true
 python api_bridge.py &
 API_PID=$!
 sleep 2
-print_success "API bridge started on http://localhost:5000"
+print_success "API bridge started on http://localhost:5004"
 
 # Start frontend
 print_step "Starting frontend dashboard..."
@@ -136,7 +136,7 @@ echo "  ALL COMPONENTS RUNNING"
 echo "================================"
 echo ""
 echo "Blockchain:  http://127.0.0.1:8545"
-echo "API Bridge:  http://localhost:5000"
+echo "API Bridge:  http://localhost:5004"
 echo "Dashboard:   http://localhost:5173"
 echo "Wallet:      http://localhost:5174"
 echo ""

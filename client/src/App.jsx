@@ -3,7 +3,7 @@ import { Zap, Sun, DollarSign, Activity, Database, ArrowRight, User, Home, Lock,
 import { AreaChart, Area, BarChart, Bar, LineChart, Line, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 // Configuration
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5004';
 const RPC_URL = import.meta.env.VITE_RPC_URL || 'http://127.0.0.1:8545';
 
 // --- API Functions ---
