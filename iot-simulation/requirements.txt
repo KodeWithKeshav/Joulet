@@ -1,0 +1,6 @@
+web3
+flask
+flask-cors
+python-dotenv
+requests
+OMPython
