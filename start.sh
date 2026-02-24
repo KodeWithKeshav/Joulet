@@ -35,6 +35,7 @@ cleanup() {
     if [ ! -z "$BLOCKCHAIN_PID" ]; then kill $BLOCKCHAIN_PID 2>/dev/null || true; fi
     if [ ! -z "$API_PID" ]; then kill $API_PID 2>/dev/null || true; fi
     if [ ! -z "$FRONTEND_PID" ]; then kill $FRONTEND_PID 2>/dev/null || true; fi
+    if [ ! -z "$WALLET_PID" ]; then kill $WALLET_PID 2>/dev/null || true; fi
     
     # Also generic cleanup just in case
     pkill -f "hardhat node" || true
@@ -121,6 +122,14 @@ npm run dev &
 FRONTEND_PID=$!
 print_success "Frontend starting on http://localhost:5173"
 
+# Start Wallet
+print_step "Starting Joulet Wallet..."
+cd "$PROJECT_ROOT/joulet-wallet"
+npm install > /dev/null 2>&1 || true
+npm run dev -- --port 5174 &
+WALLET_PID=$!
+print_success "Wallet starting on http://localhost:5174"
+
 echo ""
 echo "================================"
 echo "  ALL COMPONENTS RUNNING"
@@ -129,6 +138,7 @@ echo ""
 echo "Blockchain:  http://127.0.0.1:8545"
 echo "API Bridge:  http://localhost:5000"
 echo "Dashboard:   http://localhost:5173"
+echo "Wallet:      http://localhost:5174"
 echo ""
 print_warning "Press Ctrl+C to stop all services"
 echo ""
