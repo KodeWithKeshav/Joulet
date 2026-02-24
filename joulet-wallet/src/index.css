@@ -1,16 +1,19 @@
 @import "tailwindcss";
 
 @theme {
-  --color-joulet-green: #10B981;
-  --color-joulet-dark: #1E293B;
-  --color-joulet-darker: #0F172A;
-  --color-joulet-card: #334155;
-  --color-joulet-red: #EF4444;
+  --color-joulet-green: #00E676;
+  --color-joulet-blue: #00E5FF;
+  --color-joulet-dark: #0B101E;
+  /* Deep navy/black */
+  --color-joulet-card: #151C2C;
+  /* Slightly lighter card base */
+  --color-joulet-red: #FF3B30;
 }
 
 body {
-  background-color: #000;
-  color: white;
+  background-color: #05080E;
+  /* Outer body darker to pop the wallet */
+  color: #FFFFFF;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   display: flex;
