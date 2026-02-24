@@ -65,19 +65,25 @@ if "%choice%"=="1" (
     start "API Bridge" python api_bridge.py
     timeout /t 2
     
-    echo Starting frontend dashboard...
-    cd "%PROJECT_ROOT%client"
+    echo Starting Joulet Wallet App...
+    cd "%PROJECT_ROOT%joulet-wallet"
     call npm install
-    start "Frontend" npm run dev
+    start "Joulet Wallet" npm run dev
+    
+    echo Starting Landing Page...
+    cd "%PROJECT_ROOT%landing"
+    call npm install
+    start "Landing Page" npm run dev
     
     echo.
     echo ================================
     echo   ALL COMPONENTS RUNNING
     echo ================================
     echo.
-    echo Blockchain:  http://127.0.0.1:8545
-    echo API Bridge:  http://localhost:5000
-    echo Dashboard:   http://localhost:5173
+    echo Blockchain:    http://127.0.0.1:8545
+    echo API Bridge:    http://localhost:5004
+    echo Joulet Wallet: http://localhost:5174
+    echo Landing Page:  http://localhost:3000
     echo.
     echo Close any terminal window to stop services
     echo.
