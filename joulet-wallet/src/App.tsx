@@ -6,13 +6,15 @@ import ActivityView from './components/ActivityView';
 import DeviceView from './components/DeviceView';
 import GridStatusView from './components/GridStatusView';
 import AttackView from './components/AttackView';
+import DashboardView from './components/DashboardView';
 import ConfirmModal from './components/ConfirmModal';
 import LoginScreen from './components/LoginScreen';
-import { RadioTower, AlertTriangle, LogOut } from 'lucide-react';
+import IntroOverlay from './components/IntroOverlay';
+import { RadioTower, AlertTriangle, Users, LayoutDashboard } from 'lucide-react';
 
 function App() {
-  const { authStatus, logout, pendingEnergy, isBrownout, fetchLiveStatus, isApiConnected } = useWalletStore();
-  const [activeTab, setActiveTab] = useState<'assets' | 'activity' | 'devices' | 'grid' | 'attack'>('assets');
+  const { authStatus, login, activeProfileId, pendingEnergy, isBrownout, fetchLiveStatus, isApiConnected } = useWalletStore();
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'assets' | 'activity' | 'devices' | 'grid' | 'security'>('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Mock Merkle Root
@@ -52,22 +54,28 @@ function App() {
 
         <div className="flex-1 px-3 py-4 flex flex-col justify-between">
           <div className="space-y-1">
-            <SidebarButton active={activeTab === 'assets'} onClick={() => setActiveTab('assets')} icon={<img src="/yield-icon.png" alt="Assets" className="w-7 h-7 object-contain" />} label="Wallet Assets" accentColor="joulet-green" />
-            <SidebarButton active={activeTab === 'activity'} onClick={() => setActiveTab('activity')} icon={<img src="/nft-icon.png" alt="Logs" className="w-7 h-7 object-contain" />} label="Network Logs" accentColor="joulet-blue" />
-            <SidebarButton active={activeTab === 'devices'} onClick={() => setActiveTab('devices')} icon={<img src="/solar-icon.png" alt="Devices" className="w-7 h-7 object-contain" />} label="IOT Devices" accentColor="joulet-indigo" />
-            <SidebarButton active={activeTab === 'attack'} onClick={() => setActiveTab('attack')} icon={<AlertTriangle size={24} />} label="Simulations" accentColor="joulet-red" />
+            <SidebarButton active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon={<LayoutDashboard size={20} />} label="Command Center" accentColor="joulet-indigo" />
+            <SidebarButton active={activeTab === 'assets'} onClick={() => setActiveTab('assets')} icon={<img src="/yield-icon.png" alt="Assets" className="w-[20px] h-[20px] object-contain" />} label="Wallet Assets" accentColor="joulet-green" />
+            <SidebarButton active={activeTab === 'activity'} onClick={() => setActiveTab('activity')} icon={<img src="/nft-icon.png" alt="Logs" className="w-[20px] h-[20px] object-contain" />} label="Network Logs" accentColor="joulet-blue" />
+            <SidebarButton active={activeTab === 'devices'} onClick={() => setActiveTab('devices')} icon={<img src="/solar-icon.png" alt="Devices" className="w-[20px] h-[20px] object-contain" />} label="IOT Devices" accentColor="joulet-amber" />
+            <SidebarButton active={activeTab === 'security'} onClick={() => setActiveTab('security')} icon={<AlertTriangle size={20} />} label="Security Center" accentColor="joulet-red" />
             <div className="xl:hidden">
-              <SidebarButton active={activeTab === 'grid'} onClick={() => setActiveTab('grid')} icon={<img src="/consensus-icon.png" alt="Status" className="w-7 h-7 object-contain" />} label="Grid Status" accentColor="joulet-amber" />
+              <SidebarButton active={activeTab === 'grid'} onClick={() => setActiveTab('grid')} icon={<img src="/consensus-icon.png" alt="Status" className="w-[20px] h-[20px] object-contain" />} label="Grid Status" accentColor="joulet-amber" />
             </div>
           </div>
 
-          <div className="pb-3">
+          <div className="pb-3 space-y-2">
             <div
-              onClick={logout}
-              className="group flex items-center space-x-3 w-full p-3 rounded-xl cursor-pointer transition-all border border-transparent hover:bg-white/5 text-slate-500 hover:text-joulet-red"
+              onClick={() => login(activeProfileId === 0 ? 1 : 0)}
+              className="group flex flex-col w-full p-3 rounded-xl cursor-pointer transition-all border border-joulet-green/20 bg-joulet-green/5 hover:bg-joulet-green/10 text-white"
             >
-              <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
-              <span className="text-[11px] font-bold uppercase tracking-widest transition-colors">Switch Profile</span>
+              <div className="flex items-center space-x-2 text-joulet-green mb-1.5">
+                <Users size={16} />
+                <span className="text-[10px] font-bold uppercase tracking-widest">Judge Toggle</span>
+              </div>
+              <span className="text-xs font-medium text-slate-300">
+                Viewing as: <span className="text-white font-bold">{activeProfileId === 0 ? "Producer" : "Consumer"}</span>
+              </span>
             </div>
           </div>
         </div>
@@ -90,6 +98,8 @@ function App() {
       <main className="flex-1 flex flex-col min-w-0 z-10 overflow-hidden relative">
 
         <WalletHeader />
+
+        <IntroOverlay />
 
         {/* Notifications */}
         <div className="shrink-0 w-full z-20">
@@ -129,23 +139,20 @@ function App() {
 
         <div className="flex-1 overflow-y-auto no-scrollbar relative p-4 lg:p-8 w-full max-w-5xl mx-auto flex flex-col">
           <div className="w-full flex-1 bg-[#0f172a]/60 backdrop-blur-xl rounded-2xl border border-white/5 relative overflow-hidden">
+            {activeTab === 'dashboard' && <DashboardView />}
             {activeTab === 'assets' && <AssetView />}
             {activeTab === 'activity' && <ActivityView />}
             {activeTab === 'devices' && <DeviceView />}
-            {activeTab === 'attack' && <AttackView />}
+            {activeTab === 'security' && <AttackView />}
             {activeTab === 'grid' && <div className="xl:hidden h-full"><GridStatusView /></div>}
           </div>
         </div>
 
-        {/* Mobile Tab Navigation */}
         <div className="lg:hidden bg-[#0a0f1e]/95 backdrop-blur-lg border-t border-white/5 flex justify-around items-center pt-2 pb-5 px-2 z-30 shrink-0">
-          <TabButton active={activeTab === 'assets'} onClick={() => setActiveTab('assets')} icon={<img src="/yield-icon.png" alt="Assets" className="w-7 h-7 object-contain" />} label="Assets" accentColor="joulet-green" />
-          <TabButton active={activeTab === 'activity'} onClick={() => setActiveTab('activity')} icon={<img src="/nft-icon.png" alt="Activity" className="w-7 h-7 object-contain" />} label="Activity" accentColor="joulet-blue" />
-          <TabButton active={activeTab === 'attack'} onClick={() => setActiveTab('attack')} icon={<AlertTriangle size={18} />} label="Simulate" accentColor="joulet-red" />
-          <TabButton active={activeTab === 'devices'} onClick={() => setActiveTab('devices')} icon={<img src="/solar-icon.png" alt="Devices" className="w-7 h-7 object-contain" />} label="Devices" accentColor="joulet-indigo" />
-          <div className="xl:hidden">
-            <TabButton active={activeTab === 'grid'} onClick={() => setActiveTab('grid')} icon={<img src="/consensus-icon.png" alt="Status" className="w-7 h-7 object-contain" />} label="Status" accentColor="joulet-amber" />
-          </div>
+          <TabButton active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon={<LayoutDashboard size={18} />} label="Dash" accentColor="joulet-indigo" />
+          <TabButton active={activeTab === 'assets'} onClick={() => setActiveTab('assets')} icon={<img src="/yield-icon.png" alt="Assets" className="w-5 h-5 object-contain" />} label="Assets" accentColor="joulet-green" />
+          <TabButton active={activeTab === 'security'} onClick={() => setActiveTab('security')} icon={<AlertTriangle size={18} />} label="CSOC" accentColor="joulet-red" />
+          <TabButton active={activeTab === 'devices'} onClick={() => setActiveTab('devices')} icon={<img src="/solar-icon.png" alt="Devices" className="w-5 h-5 object-contain" />} label="Devices" accentColor="joulet-amber" />
         </div>
       </main>
 

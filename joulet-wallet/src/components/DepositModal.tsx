@@ -1,4 +1,4 @@
-+import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useWalletStore } from '../store/walletStore';
 import { X, Building, CheckCircle2 } from 'lucide-react';
 

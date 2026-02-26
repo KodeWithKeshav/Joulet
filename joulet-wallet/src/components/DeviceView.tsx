@@ -1,9 +1,10 @@
 import React from 'react';
 import { useWalletStore } from '../store/walletStore';
-import { Cpu, Signal, Lock, Plus, Link2 } from 'lucide-react';
+import { Cpu, Signal, Lock, Plus, Link2, Zap } from 'lucide-react';
 
 const DeviceView: React.FC = () => {
-    const { deviceKeys, isApiConnected } = useWalletStore();
+    const { deviceKeys, isApiConnected, fetchLiveStatus } = useWalletStore();
+    const [isSimulating, setIsSimulating] = React.useState(false);
 
     if (!deviceKeys) {
         return (
@@ -92,6 +93,28 @@ const DeviceView: React.FC = () => {
                         <div className="flex flex-col gap-1">
                             <label className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Consensus Protocol</label>
                             <input type="text" readOnly value="Local DPoS (Joulet Simulation)" className="bg-black/30 border border-white/8 rounded-lg p-2.5 text-xs font-mono text-slate-400 w-full focus:outline-none" />
+                        </div>
+
+                        <div className="mt-4 pt-4 border-t border-white/5">
+                            <button
+                                onClick={async () => {
+                                    if (isSimulating) return;
+                                    setIsSimulating(true);
+                                    try {
+                                        await fetch("http://localhost:5004/api/test/simulate?kwh=10.0", { method: "POST" });
+                                        await fetchLiveStatus();
+                                    } catch (e) {
+                                        console.error("Simulation failed", e);
+                                    }
+                                    setIsSimulating(false);
+                                }}
+                                disabled={!isApiConnected || isSimulating}
+                                className="w-full bg-joulet-green/10 hover:bg-joulet-green/20 border border-joulet-green/30 text-joulet-green text-xs font-bold py-2.5 rounded-lg flex justify-center items-center gap-2 transition-colors disabled:opacity-50"
+                            >
+                                <Zap size={14} />
+                                {isSimulating ? "Transmitting..." : "Simulate 10kWh Production"}
+                            </button>
+                            <p className="text-[9px] text-slate-500 mt-2 text-center">Sends verified telemetry to Blockchain to yield JLT.</p>
                         </div>
                     </div>
                 </div>

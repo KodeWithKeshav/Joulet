@@ -44,21 +44,30 @@ const ActivityView: React.FC = () => {
                     </div>
                 </div>
 
-                {incidentLog.map((log, idx) => (
-                    <div key={idx} className="bg-joulet-red/5 border border-joulet-red/15 p-4 rounded-xl flex items-start space-x-3 hover:border-joulet-red/30 transition-all cursor-pointer relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-1 h-full bg-joulet-red" />
-                        <div className="w-10 h-10 rounded-xl bg-joulet-red/8 flex shrink-0 items-center justify-center text-joulet-red border border-joulet-red/15">
-                            <ArrowRightLeft size={16} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-start mb-1">
-                                <span className="font-semibold text-joulet-red text-sm">Grid Event Logged</span>
-                                <span className="text-[9px] font-medium text-joulet-red uppercase tracking-wider bg-joulet-red/8 px-2 py-0.5 rounded border border-joulet-red/15 shrink-0">Notice</span>
+                {incidentLog.map((logStr, idx) => {
+                    // Quick check if log is an error/red
+                    const isError = logStr.toLowerCase().includes("failed") || logStr.toLowerCase().includes("blocked") || logStr.toLowerCase().includes("brownout");
+                    const isTx = logStr.toLowerCase().includes("executed") || logStr.toLowerCase().includes("deposited");
+                    const colorScore = isError ? 'joulet-red' : (isTx ? 'emerald-500' : 'joulet-blue');
+
+                    return (
+                        <div key={idx} className={`bg-${colorScore}/5 border border-${colorScore}/15 p-4 rounded-xl flex items-start space-x-3 hover:border-${colorScore}/30 transition-all cursor-pointer relative overflow-hidden`}>
+                            <div className={`absolute top-0 left-0 w-1 h-full bg-${colorScore}`} />
+                            <div className={`w-10 h-10 rounded-xl bg-${colorScore}/8 flex shrink-0 items-center justify-center text-${colorScore} border border-${colorScore}/15`}>
+                                <ArrowRightLeft size={16} />
                             </div>
-                            <div className="text-xs font-medium text-white/80 mt-1 bg-black/20 w-full px-2 py-1.5 rounded border border-white/5 break-words">{log}</div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex justify-between items-start mb-1">
+                                    <span className={`font-semibold text-${colorScore} text-sm`}>
+                                        {isError ? "Security Event" : (isTx ? "Transaction Logged" : "System Event")}
+                                    </span>
+                                    <span className={`text-[9px] font-medium text-${colorScore} uppercase tracking-wider bg-${colorScore}/8 px-2 py-0.5 rounded border border-${colorScore}/15 shrink-0`}>Record</span>
+                                </div>
+                                <div className="text-xs font-medium text-white/80 mt-1 bg-black/20 w-full px-2 py-1.5 rounded border border-white/5 break-words">{logStr}</div>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
 
                 {incidentLog.length === 0 && verifiedBatches === 0 && (
                     <div className="md:col-span-2 text-center text-slate-500 py-16 flex flex-col items-center justify-center border border-white/5 rounded-xl border-dashed">

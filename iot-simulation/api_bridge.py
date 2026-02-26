@@ -633,6 +633,20 @@ def handle_grid_status():
     else: # GET
         return jsonify(grid_status), 200
 
+@app.route('/api/test/simulate', methods=['POST'])
+def test_simulate():
+    """Manually push a realistic physical reading to accumulate tokens"""
+    try:
+        kwh = float(request.args.get('kwh', 10.0))
+        result = process_reading(kwh, "manual_sim_trigger")
+        return jsonify({
+            "status": "success",
+            "kwh_added": kwh,
+            "total_accumulated": result.get("accumulated")
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 # ============================================================================
 # ERROR HANDLERS
 # ============================================================================

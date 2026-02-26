@@ -5,9 +5,9 @@ import TransactionManager from '../core/transactionManager';
 import { ethers } from 'ethers';
 
 const HARDHAT_RPC = 'http://127.0.0.1:8545';
-const API_URL = "http://127.0.0.1:5010/api/consensus/status";
+const API_URL = "http://127.0.0.1:5000/api/status"; // Main Producer API
+const CONSENSUS_API_URL = "http://127.0.0.1:5010/api/consensus/status"; // Oracle Consensus Engine
 const GRID_API_URL = "http://127.0.0.1:5004/api/grid/status"; // Real RLC physics grid data
-const SUBMIT_URL = "http://localhost:5001/api/oracle/submit"; // Direct to an oracle for the demo attack panel
 
 interface WalletState {
     authStatus: 'locked' | 'unlocked';
@@ -204,7 +204,6 @@ export const useWalletStore = create<WalletState>()(
                     const data = await response.json();
 
                     const pending = data.metrics?.accumulated_energy || 0;
-                    const isOracleConnected = data.oracle?.connected || false;
 
                     // ── Fetch REAL grid physics data from RLC simulation ──
                     let liveVoltage = state.rmsVoltage || 230;
@@ -242,6 +241,7 @@ export const useWalletStore = create<WalletState>()(
                     const computedPrice = Math.max(0.10, (liveDifficulty / 10) * 0.50);
 
                     let jltBalance = state.jltBalance;
+                    let additionalIncidents: string[] = [];
                     const contractAddr = data.contract?.address || data.oracle?.address;
 
                     // Only attempt to fetch wallet balance if currently logged in
@@ -257,8 +257,26 @@ export const useWalletStore = create<WalletState>()(
                             if (state.activeProfileId === 0 && parsedBal >= 450000) {
                                 parsedBal -= 450000;
                             }
+
                             // Clamp to max(0, bal) in case we manually burned tokens in test scripts
-                            jltBalance = Math.max(0, parsedBal);
+                            const newBal = Math.max(0, parsedBal);
+
+                            // Detect background transfers / deposits that weren't manually triggered
+                            if (state.jltBalance > 0 && newBal !== state.jltBalance) {
+                                const diff = newBal - state.jltBalance;
+                                if (diff > 0) {
+                                    const amountStr = diff.toFixed(2);
+                                    if (!state.incidentLog.slice(0, 5).some(l => l.includes(`+${amountStr}`))) {
+                                        additionalIncidents.push(`[${new Date().toLocaleTimeString()}] Received Transfer: +${amountStr} JLT deposited to your wallet.`);
+                                    }
+                                } else {
+                                    const amountStr = Math.abs(diff).toFixed(2);
+                                    if (!state.incidentLog.slice(0, 5).some(l => l.includes(`-${amountStr}`))) {
+                                        additionalIncidents.push(`[${new Date().toLocaleTimeString()}] Outbound Transfer: -${amountStr} JLT sent from your wallet.`);
+                                    }
+                                }
+                            }
+                            jltBalance = newBal;
                         } catch (err) {
                             console.error("Blockchain fetch failed:", err);
                         }
@@ -266,23 +284,32 @@ export const useWalletStore = create<WalletState>()(
 
                     // ── Fetch REAL oracle reputations from consensus engine ──
                     let liveReputations: Record<string, number> = {};
-                    if (isOracleConnected && data.oracle?.reputations) {
-                        // Map raw consensus engine keys to display names
-                        const rawReps = data.oracle.reputations as Record<string, number>;
-                        const nameMap: Record<string, string> = {
-                            'oracle_1': 'Node_Alpha',
-                            'oracle_2': 'Node_Beta',
-                            'oracle_3': 'Node_Gamma'
-                        };
-                        for (const [key, val] of Object.entries(rawReps)) {
-                            const displayName = nameMap[key] || key;
-                            liveReputations[displayName] = val;
+                    try {
+                        const consensusRes = await fetch(CONSENSUS_API_URL);
+                        if (consensusRes.ok) {
+                            const consensusData = await consensusRes.json();
+                            if (consensusData.oracle?.reputations) {
+                                // Map raw consensus engine keys to display names
+                                const rawReps = consensusData.oracle.reputations as Record<string, number>;
+                                const nameMap: Record<string, string> = {
+                                    'oracle_1': 'Node_Alpha',
+                                    'oracle_2': 'Node_Beta',
+                                    'oracle_3': 'Node_Gamma'
+                                };
+                                for (const [key, val] of Object.entries(rawReps)) {
+                                    const displayName = nameMap[key] || key;
+                                    liveReputations[displayName] = val;
+                                }
+                            }
                         }
+                    } catch {
+                        // Keep previous if offline
+                        liveReputations = state.oracleReputations;
                     }
 
                     set({
                         isApiConnected: true,
-                        // Update metrics for Producer vs Consumer
+                        // Update metrics (using total_reported for total kWh generated)
                         pendingEnergy: state.activeProfileId === 0 ? pending : 0,
                         totalKwhGenerated: state.activeProfileId === 0 ? (data.metrics?.total_reported || 0) : 0,
                         verifiedBatches: state.activeProfileId === 0 ? (data.metrics?.reports_count || 0) : 0,
@@ -293,7 +320,10 @@ export const useWalletStore = create<WalletState>()(
                         currentJltPrice: computedPrice,
                         difficultyThreshold: liveDifficulty,
                         difficultyHistory: newDiffHistory,
-                        oracleReputations: liveReputations
+                        oracleReputations: liveReputations,
+                        ...(additionalIncidents.length > 0 && {
+                            incidentLog: [...additionalIncidents, ...state.incidentLog].slice(0, 50)
+                        })
                     });
 
                 } catch (error) {
@@ -316,7 +346,8 @@ export const useWalletStore = create<WalletState>()(
                 walletKeys: state.walletKeys,
                 deviceKeys: state.deviceKeys,
                 fiatBalances: state.fiatBalances,
-                difficultyHistory: state.difficultyHistory
+                difficultyHistory: state.difficultyHistory,
+                incidentLog: state.incidentLog
             }),
         }
     )

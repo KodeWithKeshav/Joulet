@@ -9,7 +9,7 @@ interface SendModalProps {
 }
 
 const SendModal: React.FC<SendModalProps> = ({ isOpen, onClose }) => {
-    const { jltBalance, walletKeys } = useWalletStore();
+    const { jltBalance, walletKeys, addIncident, fetchLiveStatus } = useWalletStore();
     const [toAddress, setToAddress] = useState('');
     const [amount, setAmount] = useState('');
     const [status, setStatus] = useState<'idle' | 'signing' | 'error' | 'success'>('idle');
@@ -35,6 +35,10 @@ const SendModal: React.FC<SendModalProps> = ({ isOpen, onClose }) => {
                 toAddress,
                 parseAmount
             );
+
+            addIncident(`Executed Transfer: -${parseAmount.toFixed(2)} JLT to ${toAddress.substring(0, 6)}...`);
+            fetchLiveStatus();
+
             setTxHash(hash);
             setStatus('success');
             setMessage('Transfer verified and confirmed on ledger.');
