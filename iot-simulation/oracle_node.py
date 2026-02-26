@@ -31,13 +31,15 @@ NODE_ID = "oracle_1"
 CONSENSUS_ENGINE_URL = "http://127.0.0.1:5010"
 INTERNAL_API_KEY = os.getenv('INTERNAL_API_KEY', 'joulet_internal_secret_key')
 
-# Mock registry of authorized IoT devices and their public addresses
-# In reality, this would be pulled from a smart contract registry
-AUTHORIZED_DEVICES = {
-    'solar_node_alpha': Web3().eth.account.from_key('0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d').address,
-    'solar_node_beta': Web3().eth.account.from_key('0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a').address,
-    'solar_node_gamma': Web3().eth.account.from_key('0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6').address
-}
+# Load dynamic device registry from JSON (simulating blockchain/database registry)
+AUTHORIZED_DEVICES = {}
+try:
+    with open('devices.json', 'r') as f:
+        keys = json.load(f)
+        for d_id, p_key in keys.items():
+            AUTHORIZED_DEVICES[d_id] = Web3().eth.account.from_key(p_key).address
+except Exception as e:
+    print(f"Failed to load devices: {e}")
 
 # State for Check 4 (No sudden spike)
 # device_id -> last_power_kw
@@ -45,18 +47,22 @@ last_readings = {}
 
 def get_weather_multiplier(timestamp_str, location="simulated"):
     """
-    Simulated Check 5: Weather Match.
-    A real implementation would query an external oracle (e.g. Chainlink) or weather API.
-    For this demo, we assume sunny conditions during the day (multiplier ~1.0)
-    and we will reject readings that claim high generation during known "cloudy" simulated periods.
+    Real Check 5: Matches external weather API.
+    Queries Open-Meteo for live cloud cover at a realistic solar farm location (e.g. California Desert).
     """
-    # Simply using the timestamp hour to mock weather variability
-    dt = datetime.fromisoformat(timestamp_str)
-    
-    # Let's say it's known to be cloudy around 2 PM (14:00) during this simulation
+    try:
+        response = requests.get("https://api.open-meteo.com/v1/forecast?latitude=35.0&longitude=-119.0&current=cloud_cover", timeout=3)
+        if response.status_code == 200:
+            cloud_cover = float(response.json().get("current", {}).get("cloud_cover", 0))
+            return 1.0 - (cloud_cover / 100.0 * 0.7)  # 100% cloud cover = 30% max efficiency
+    except Exception as e:
+        print(f"Weather API fallback triggers: {e}")
+        
+    # Fallback to pure timestamp parsing if API offline
+    dt = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00') if timestamp_str.endswith('Z') else timestamp_str)
     if dt.hour == 14:
-        return 0.3 # Expecting only 30% of max capacity
-    return 1.0     # Expecting full capacity possible
+        return 0.3
+    return 1.0
 
 def run_validations(payload, signature):
     """

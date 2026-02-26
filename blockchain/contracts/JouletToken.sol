@@ -128,8 +128,18 @@ contract JouletToken is ERC20, Ownable {
      */
     function verifyPhysicsProof(bytes memory proofData, uint256[] memory publicInputs) public pure returns (bool) {
          require(proofData.length > 0, "Empty proof");
-         require(publicInputs.length > 0, "No public inputs");
-         return true; 
+         require(publicInputs.length >= 3, "Requires V, I, P public inputs");
+         
+         uint256 v = publicInputs[0];
+         uint256 i = publicInputs[1];
+         uint256 p = publicInputs[2];
+         
+         // Real math check on the smart contract replacing ZK mock
+         // Inputs scaled by 100 to preserve precision
+         uint256 calcP = (v * i) / 100000; 
+         
+         uint256 diff = calcP > p ? calcP - p : p - calcP;
+         return diff <= (p / 20) + 1; // within 5% error margin
     }
     
     /**

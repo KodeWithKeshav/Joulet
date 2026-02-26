@@ -11,12 +11,13 @@ import json
 import csv
 import os
 
-# Deterministic mock private keys for testing
-PRIVATE_KEYS = {
-    'solar_node_alpha': '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d',
-    'solar_node_beta': '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a',
-    'solar_node_gamma': '0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6'
-}
+# Load private keys from configuration
+PRIVATE_KEYS = {}
+try:
+    with open('devices.json', 'r') as f:
+        PRIVATE_KEYS = json.load(f)
+except Exception as e:
+    print(f"Failed to load devices: {e}")
 
 def sign_data(private_key_hex, data_dict):
     """

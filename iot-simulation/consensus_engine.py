@@ -49,11 +49,8 @@ last_submission_time = time.time()
 
 # Oracle Reputation Metrics
 # Start at 1.0. Correct block vote = +0.01. Incorrect vote (against majority) = -0.05
-oracle_reputation = {
-    "oracle_1": 1.0,
-    "oracle_2": 1.0,
-    "oracle_3": 1.0
-}
+# Dict builds dynamically as authorized nodes connect.
+oracle_reputation = {}
 
 # Buffer for incoming votes keyed by data payload signature (unique hash of the reading)
 # format: { "signature1": { "valid_votes": {"oracle_1": weight}, "invalid_votes": {...}, "payload": {...} } }
@@ -205,6 +202,8 @@ def receive_vote():
              return jsonify({"status": "Already processed"}), 200
              
         # Record the vote weight based on node reputation
+        if node_id not in oracle_reputation:
+            oracle_reputation[node_id] = 1.0
         weight = max(0.01, oracle_reputation.get(node_id, 1.0))
         vote_dict[approval][node_id] = weight
         

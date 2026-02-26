@@ -59,7 +59,11 @@ def simulate_zk_snark_generation(data_payload):
          "curve": "bn128"
     }
     
-    public_inputs = [str(p)] # The only thing revealed is the total power
+    public_inputs = [
+        str(v * 100),
+        str(i * 100),
+        str(p * 100)
+    ]
     
     print("✅ [ZK-Prover] Proof Generation Complete.")
     return True, {"proof": proof, "public_inputs": public_inputs}
@@ -74,8 +78,12 @@ def verify_on_chain(oracle, proof_data):
     # Convert mock proof to bytes
     mock_bytes = b"mock_zk_snark_proof_array_groth16"
     
-    # Format public inputs for solidity
-    pub_inputs = [int(float(proof_data["public_inputs"][0]) * 10)]
+    # Format public inputs for solidity scaled by 100
+    pub_inputs = [
+         int(float(proof_data["public_inputs"][0])),
+         int(float(proof_data["public_inputs"][1])),
+         int(float(proof_data["public_inputs"][2]))
+    ]
     
     try:
          # Explicit call to the contract view function
