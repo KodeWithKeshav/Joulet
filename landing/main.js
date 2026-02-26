@@ -645,19 +645,79 @@ setInterval(fetchLiveData, 3000);
 fetchLiveData(); // Initial call
 
 // ──────────────────────────────────────────────
-// INIT
+// INIT & PREMIUM LOADER
 // ──────────────────────────────────────────────
 
-function waitForGSAP() {
-  if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
-    initAnimations();
-  } else {
-    requestAnimationFrame(waitForGSAP);
+function startPremiumLoader() {
+  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') {
+    requestAnimationFrame(startPremiumLoader);
+    return;
   }
+
+  const statusEl = document.getElementById('ul-status-text');
+  const statusMessages = [
+    { at: 0, text: 'INITIALIZING DECENTRALIZED ENERGY PROTOCOL...' },
+    { at: 0.4, text: 'CONNECTING TO LOCAL BLOCKCHAIN...' },
+    { at: 0.8, text: 'SYNCING SMART CONTRACTS...' },
+    { at: 1.2, text: 'LOADING DEX LIQUIDITY ENGINE...' },
+    { at: 1.6, text: 'CALIBRATING IoT ORACLE BRIDGE...' },
+    { at: 2.0, text: 'ESTABLISHING P2P ENERGY CHANNELS...' },
+    { at: 2.3, text: 'FINALIZING GENESIS BLOCK...' },
+  ];
+
+  // Schedule status text updates
+  statusMessages.forEach(msg => {
+    setTimeout(() => {
+      if (statusEl) {
+        statusEl.style.opacity = '0';
+        statusEl.style.transform = 'translateY(5px)';
+        setTimeout(() => {
+          statusEl.textContent = msg.text;
+          statusEl.style.opacity = '1';
+          statusEl.style.transform = 'translateY(0)';
+        }, 150);
+      }
+    }, msg.at * 1000);
+  });
+
+  // Animate progress bar fill over 2.5 seconds
+  gsap.to('#ul-progress-fill', {
+    width: '100%',
+    duration: 2.5,
+    ease: 'power2.inOut',
+    onComplete: () => {
+      // Show "NETWORK READY" before transitioning out
+      if (statusEl) {
+        statusEl.style.opacity = '0';
+        setTimeout(() => {
+          statusEl.textContent = 'NETWORK READY ✓';
+          statusEl.style.color = '#34d399';
+          statusEl.style.opacity = '1';
+        }, 150);
+      }
+
+      // Transition out the loader after a brief pause
+      setTimeout(() => {
+        const tl = gsap.timeline({
+          onComplete: () => {
+            document.getElementById('ultra-loader').style.display = 'none';
+            document.getElementById('ultra-loader').remove();
+            initAnimations();
+          }
+        });
+
+        tl.to('.ul-text-box', { opacity: 0, y: -15, duration: 0.3, ease: 'power2.in' })
+          .to('.ul-circuit', { opacity: 0, duration: 0.3 }, '-=0.2')
+          .to('.ul-ring', { scale: 1.5, opacity: 0, duration: 0.6, stagger: 0.1, ease: 'power2.in' }, '-=0.2')
+          .to('.ul-mascot', { scale: 3, opacity: 0, filter: 'blur(20px)', duration: 0.6, ease: 'power3.in' }, '-=0.6')
+          .to('#ultra-loader', { opacity: 0, backgroundColor: 'transparent', duration: 0.8 }, '-=0.4');
+      }, 500);
+    }
+  });
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', waitForGSAP);
+  document.addEventListener('DOMContentLoaded', startPremiumLoader);
 } else {
-  waitForGSAP();
+  startPremiumLoader();
 }

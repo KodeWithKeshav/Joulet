@@ -48,7 +48,8 @@ class SolarOracle:
             {
                 "inputs": [
                     {"internalType": "address", "name": "producerWallet", "type": "address"},
-                    {"internalType": "uint256", "name": "kWhAmount", "type": "uint256"}
+                    {"internalType": "uint256", "name": "kWhAmount", "type": "uint256"},
+                    {"internalType": "bytes32", "name": "merkleRoot", "type": "bytes32"}
                 ],
                 "name": "reportEnergyProduction",
                 "outputs": [],
@@ -58,8 +59,11 @@ class SolarOracle:
             {
                 "anonymous": False,
                 "inputs": [
+                    {"indexed": True, "internalType": "uint256", "name": "batchId", "type": "uint256"},
+                    {"indexed": True, "internalType": "address", "name": "producerWallet", "type": "address"},
                     {"indexed": False, "internalType": "uint256", "name": "kWhProduced", "type": "uint256"},
-                    {"indexed": False, "internalType": "uint256", "name": "tokensMinted", "type": "uint256"}
+                    {"indexed": False, "internalType": "uint256", "name": "tokensMinted", "type": "uint256"},
+                    {"indexed": False, "internalType": "bytes32", "name": "merkleRoot", "type": "bytes32"}
                 ],
                 "name": "EnergyReported",
                 "type": "event"
@@ -100,28 +104,39 @@ class SolarOracle:
             # Nighttime - no solar production
             return 0
     
-    def report_energy(self, producer_address, kwh_amount):
+    def report_energy(self, producer_address, kwh_amount, merkle_root=None):
         """
         Report energy production to the blockchain
         
         Args:
             producer_address: Address of the solar farm producer
             kwh_amount: Amount of energy produced in kWh
+            merkle_root: Hex string of the Merkle root. Defaults to zero hash if not provided.
         """
         try:
             # Convert kWh to integer (avoiding floating point)
             kwh_int = int(kwh_amount * 10)  # Store as 10x for precision
+            
+            if not merkle_root:
+                 # Default an empty 32-byte hex if none provided (e.g. for pure simulation mode bypassing consensus engine)
+                 merkle_root = "0x" + "0"*64
+            elif isinstance(merkle_root, str) and not merkle_root.startswith('0x'):
+                 merkle_root = "0x" + merkle_root
+            
+            # Convert string hex to bytes
+            root_bytes = Web3.to_bytes(hexstr=merkle_root)
             
             # Build transaction
             nonce = self.w3.eth.get_transaction_count(self.oracle_address)
             
             transaction = self.contract.functions.reportEnergyProduction(
                 Web3.to_checksum_address(producer_address),
-                kwh_int
+                kwh_int,
+                root_bytes
             ).build_transaction({
                 'from': self.oracle_address,
                 'nonce': nonce,
-                'gas': 200000,
+                'gas': 300000,
                 'gasPrice': self.w3.eth.gas_price
             })
             
@@ -132,9 +147,10 @@ class SolarOracle:
             )
             
             # Send transaction
-            tx_hash = self.w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+            raw_tx = getattr(signed_txn, 'raw_transaction', getattr(signed_txn, 'rawTransaction', None))
+            tx_hash = self.w3.eth.send_raw_transaction(raw_tx)
             
-            print(f"⚡ Energy report submitted: {kwh_amount:.2f} kWh")
+            print(f"⚡ Energy report submitted: {kwh_amount:.2f} kWh (Root: {merkle_root})")
             print(f"   Transaction hash: {tx_hash.hex()}")
             
             # Wait for confirmation

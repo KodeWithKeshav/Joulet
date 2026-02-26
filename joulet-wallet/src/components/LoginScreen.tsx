@@ -1,17 +1,17 @@
 import React from 'react';
 import { useWalletStore } from '../store/walletStore';
 import { HARDHAT_PROFILES } from '../core/keyManager';
-import { Sun, HomeIcon, Building2, Zap, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const LoginScreen: React.FC = () => {
     const { login, isApiConnected } = useWalletStore();
 
     const getIcon = (id: number) => {
         switch (id) {
-            case 0: return <Sun className="text-amber-400" size={28} />;
-            case 1: return <HomeIcon className="text-joulet-green" size={28} />;
-            case 2: return <Building2 className="text-joulet-blue" size={28} />;
-            default: return <Zap className="text-white" size={28} />;
+            case 0: return <img src="/solar-icon.png" alt="Solar Station" className="w-14 h-14 object-contain" />;
+            case 1: return <img src="/home-icon.png" alt="Smart Home" className="w-14 h-14 object-contain" />;
+            case 2: return <img src="/building-icon.png" alt="Commercial Building" className="w-14 h-14 object-contain" />;
+            default: return <img src="/mascot.png" alt="Default" className="w-14 h-14 object-contain" />;
         }
     };
 
@@ -33,9 +33,7 @@ const LoginScreen: React.FC = () => {
 
                 {/* Header */}
                 <div className="text-center mb-14">
-                    <div className="w-16 h-16 mx-auto rounded-2xl bg-[#064E3B] flex items-center justify-center mb-6">
-                        <Zap className="text-joulet-green" size={32} />
-                    </div>
+                    <img src="/mascot.png" alt="Joulet" className="w-16 h-16 mx-auto object-contain mb-6" />
                     <h1 className="font-display text-4xl md:text-5xl font-black text-white tracking-tight mb-3">
                         Select Persona
                     </h1>

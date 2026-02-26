@@ -14,10 +14,10 @@ async function main() {
   // 4. Get the final address
   const address = await joulet.getAddress();
 
-  // Authorize the deployer (Account #0) as a valid Energy Meter Oracle of the system
+  // Authorize the deployer (Account #0) as a valid Oracle Consensus Engine of the system
   const [deployer] = await hre.ethers.getSigners();
-  await joulet.setEnergyMeter(deployer.address);
-  console.log(`Authorized Energy Meter: ${deployer.address}`);
+  await joulet.setOracleConsensus(deployer.address);
+  console.log(`Authorized Oracle Consensus: ${deployer.address}`);
 
   console.log("------------------------------------------------");
   console.log(`Joulet Token successfully deployed to: ${address}`);

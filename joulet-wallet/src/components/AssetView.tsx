@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useWalletStore } from '../store/walletStore';
-import { Zap, Leaf, Activity, ArrowDownToLine, ArrowUpRight, Repeat, Landmark } from 'lucide-react';
+
 import SendModal from './SendModal';
 import SwapModal from './SwapModal';
 import DepositModal from './DepositModal';
@@ -28,7 +28,7 @@ const AssetView: React.FC = () => {
                     {/* JLT Balance */}
                     <div>
                         <div className="text-xs font-medium text-slate-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
-                            <Zap size={12} className="text-joulet-green" />
+                            <img src="/yield-icon.png" className="w-6 h-6 object-contain" alt="JLT" />
                             Joulet Energy Token
                         </div>
                         <div className="text-5xl md:text-6xl font-black text-white mb-1 flex items-baseline gap-2 tracking-tight">
@@ -58,12 +58,13 @@ const AssetView: React.FC = () => {
 
                 {/* Quick Actions */}
                 <div className="flex flex-wrap items-center gap-3 pt-2">
-                    <ActionButton onClick={handleReceive} icon={<ArrowDownToLine size={16} />} label="Receive" color="joulet-green" />
-                    <ActionButton onClick={() => setIsSendOpen(true)} icon={<ArrowUpRight size={16} />} label="Send" color="joulet-blue" />
-                    <ActionButton onClick={() => setIsSwapOpen(true)} icon={<Repeat size={16} />} label="Trade JLT" color="joulet-indigo" />
-                    <ActionButton onClick={() => setIsDepositOpen(true)} icon={<Landmark size={16} />} label="Bank Wire" color="joulet-green" />
+                    <ActionButton onClick={handleReceive} icon={<img src="/solar-icon.png" className="w-8 h-8 object-contain" alt="Receive" />} label="Receive" color="joulet-green" />
+                    <ActionButton onClick={() => setIsSendOpen(true)} icon={<img src="/building-icon.png" className="w-8 h-8 object-contain" alt="Send" />} label="Send" color="joulet-blue" />
+                    <ActionButton onClick={() => setIsSwapOpen(true)} icon={<img src="/trade-icon.png" className="w-8 h-8 object-contain" alt="Trade JLT" />} label="Trade JLT" color="joulet-indigo" />
+                    <ActionButton onClick={() => setIsDepositOpen(true)} icon={<img src="/home-icon.png" className="w-8 h-8 object-contain" alt="Bank Wire" />} label="Bank Wire" color="joulet-green" />
                 </div>
             </div>
+
 
             {/* Mobile Fiat */}
             <div className="md:hidden flex justify-between items-center bg-[#0f172a] border border-white/5 rounded-xl p-4">
@@ -74,18 +75,18 @@ const AssetView: React.FC = () => {
             {/* Sub-Asset Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-5 border-t border-white/5">
                 <StatCard
-                    icon={<Leaf size={18} />}
+                    icon={<img src="/nft-icon.png" alt="Carbon NFT" className="w-[110%] h-[110%] object-contain" />}
                     iconColor="text-emerald-400"
-                    iconBg="bg-emerald-500/8"
+                    iconBg="bg-emerald-500/0"
                     title="Carbon NFTs"
                     subtitle="Verified Offsets"
                     value={String(carbonNfts)}
                     hoverColor="hover:border-emerald-500/20"
                 />
                 <StatCard
-                    icon={<Zap size={18} />}
+                    icon={<img src="/yield-icon.png" alt="Protocol Yield" className="w-[110%] h-[110%] object-contain scale-110" />}
                     iconColor="text-joulet-amber"
-                    iconBg="bg-joulet-amber/8"
+                    iconBg="bg-joulet-amber/0"
                     title="Total Protocol Yield"
                     subtitle="Lifetime Production"
                     value={`${totalKwhGenerated.toFixed(1)}`}
@@ -93,9 +94,9 @@ const AssetView: React.FC = () => {
                     hoverColor="hover:border-joulet-amber/20"
                 />
                 <StatCard
-                    icon={<Activity size={18} />}
+                    icon={<img src="/consensus-icon.png" alt="Network Consensus" className="w-[110%] h-[110%] object-contain scale-110" />}
                     iconColor="text-joulet-indigo"
-                    iconBg="bg-joulet-indigo/8"
+                    iconBg="bg-joulet-indigo/0"
                     title="Network Consensus"
                     subtitle="Batches Authenticated"
                     value={String(verifiedBatches)}
@@ -130,7 +131,7 @@ function StatCard({ icon, iconColor, iconBg, title, subtitle, value, unit, hover
     return (
         <div className={`bg-[#1e293b]/50 backdrop-blur-sm p-5 rounded-xl border border-white/5 ${hoverColor} transition-all cursor-pointer group`}>
             <div className="flex items-center space-x-3 mb-3">
-                <div className={`w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center ${iconColor} border border-white/5`}>
+                <div className={`w-14 h-14 rounded-xl ${iconBg} flex items-center justify-center ${iconColor} border border-white/5`}>
                     {icon}
                 </div>
                 <div>

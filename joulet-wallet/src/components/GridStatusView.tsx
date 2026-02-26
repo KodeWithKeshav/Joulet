@@ -1,6 +1,6 @@
 import React from 'react';
 import { useWalletStore } from '../store/walletStore';
-import { Activity, ShieldCheck, AlertTriangle, TrendingDown, TrendingUp } from 'lucide-react';
+import { AlertTriangle, TrendingDown, TrendingUp } from 'lucide-react';
 
 interface GridProps {
     isStandalone?: boolean;
@@ -38,7 +38,7 @@ const GridStatusView: React.FC<GridProps> = ({ isStandalone = false }) => {
         <div className={`space-y-5 h-full relative z-10 flex flex-col ${isStandalone ? 'p-6' : 'p-6 md:p-8'}`}>
             <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                    <Activity size={14} className="text-joulet-amber" />
+                    <img src="/yield-icon.png" alt="Analytics" className="w-6 h-6 object-contain" />
                     Network Analytics
                 </h2>
                 {isStandalone && (
@@ -89,8 +89,8 @@ const GridStatusView: React.FC<GridProps> = ({ isStandalone = false }) => {
                 <div className="bg-[#1e293b]/50 rounded-xl p-5 border border-white/5 flex flex-col justify-between">
                     <div>
                         <div className="flex items-center space-x-2 mb-4 pb-3 border-b border-white/5">
-                            <div className="w-7 h-7 rounded-lg bg-joulet-blue/8 flex items-center justify-center border border-joulet-blue/15">
-                                <ShieldCheck className="text-joulet-blue" size={14} />
+                            <div className="w-10 h-10 rounded-lg bg-joulet-blue/8 flex items-center justify-center border border-joulet-blue/15">
+                                <img src="/consensus-icon.png" alt="Consensus" className="w-6 h-6 object-contain" />
                             </div>
                             <div>
                                 <h3 className="font-semibold text-sm text-white/90">Network Consensus</h3>

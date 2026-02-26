@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
++import React, { useState } from 'react';
 import { useWalletStore } from '../store/walletStore';
 import { X, Building, CheckCircle2 } from 'lucide-react';
 
@@ -35,30 +35,30 @@ const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:p-10 backdrop-blur-md bg-[#0a0f1e]/80">
-            <div className="bg-[#0f172a] border border-white/8 shadow-2xl rounded-2xl w-full max-w-md overflow-hidden relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 lg:p-10 backdrop-blur-md bg-[#0D0D0D]/80">
+            <div className="bg-[#161616] border border-white/8 shadow-2xl rounded-2xl w-full max-w-md overflow-hidden relative">
 
                 <button
                     onClick={handleClose}
-                    className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors text-slate-400 hover:text-white"
+                    className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-colors text-[#888888] hover:text-white"
                 >
                     <X size={18} />
                 </button>
 
                 <div className="p-7">
                     <h2 className="text-lg font-bold text-white tracking-wide mb-0.5 flex items-center gap-2">
-                        <Building size={16} className="text-emerald-400" /> Bank Transfer
+                        <Building size={16} className="text-joulet-green" /> Bank Transfer
                     </h2>
-                    <p className="text-[11px] text-slate-500 tracking-wider mb-7">Simulate Fiat Deposit</p>
+                    <p className="text-[11px] text-[#555] tracking-wider mb-7">Simulate Fiat Deposit</p>
 
                     {status === 'success' ? (
                         <div className="flex flex-col items-center justify-center py-6">
-                            <CheckCircle2 size={48} className="text-emerald-400 mb-4" />
+                            <CheckCircle2 size={48} className="text-joulet-green mb-4" />
                             <h3 className="text-lg font-bold text-white text-center mb-2">Wire Successful</h3>
-                            <p className="text-xs text-slate-400 text-center mb-5 max-w-[250px]">Fiat funds are now available for trading JLT.</p>
+                            <p className="text-xs text-[#888888] text-center mb-5 max-w-[250px]">Fiat funds are now available for trading JLT.</p>
                             <button
                                 onClick={handleClose}
-                                className="w-full bg-emerald-500/8 border border-emerald-500/20 text-emerald-400 font-semibold py-3 rounded-xl hover:bg-emerald-500/15 transition-all text-xs tracking-wider"
+                                className="w-full bg-joulet-green/8 border border-joulet-green/20 text-joulet-green font-semibold py-3 rounded-xl hover:bg-joulet-green/15 transition-all text-xs tracking-wider"
                             >
                                 Continue
                             </button>
@@ -66,17 +66,17 @@ const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose }) => {
                     ) : (
                         <div className="space-y-5">
                             <div className="space-y-1.5">
-                                <label className="text-[10px] font-medium text-slate-400 tracking-wider">USD Amount</label>
+                                <label className="text-[10px] font-medium text-[#888888] tracking-wider">USD Amount</label>
                                 <div className="relative">
                                     <input
                                         type="number"
                                         placeholder="0.00"
                                         value={amount}
                                         onChange={(e) => setAmount(e.target.value)}
-                                        className="w-full bg-black/30 border border-white/5 focus:border-joulet-teal/40 rounded-xl px-4 py-3 text-xl font-bold text-white placeholder-slate-600 focus:outline-none transition-colors"
+                                        className="w-full bg-[#0D0D0D] border border-white/5 focus:border-joulet-green/40 rounded-xl px-4 py-3 text-xl font-bold text-white placeholder-slate-600 focus:outline-none transition-colors"
                                     />
                                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                                        <span className="text-sm font-medium text-emerald-400">USD</span>
+                                        <span className="text-sm font-medium text-joulet-green">USD</span>
                                     </div>
                                 </div>
                             </div>
@@ -86,8 +86,8 @@ const DepositModal: React.FC<DepositModalProps> = ({ isOpen, onClose }) => {
                                 disabled={!isAmountValid || status === 'processing'}
                                 className={`w-full py-3.5 rounded-xl font-bold text-sm tracking-wider transition-all flex justify-center items-center gap-2
                                     ${(isAmountValid && status !== 'processing')
-                                        ? 'bg-joulet-green text-[#0a0f1e] hover:bg-emerald-300'
-                                        : 'bg-white/5 text-slate-500 cursor-not-allowed border border-white/5'
+                                        ? 'bg-joulet-green text-[#0D0D0D] hover:bg-joulet-green'
+                                        : 'bg-white/5 text-[#555] cursor-not-allowed border border-white/5'
                                     }`}
                             >
                                 {status === 'processing' ? (

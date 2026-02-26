@@ -5,13 +5,14 @@ import AssetView from './components/AssetView';
 import ActivityView from './components/ActivityView';
 import DeviceView from './components/DeviceView';
 import GridStatusView from './components/GridStatusView';
+import AttackView from './components/AttackView';
 import ConfirmModal from './components/ConfirmModal';
 import LoginScreen from './components/LoginScreen';
-import { Activity, LayoutList, Cpu, Zap, RadioTower, AlertTriangle, LogOut } from 'lucide-react';
+import { RadioTower, AlertTriangle, LogOut } from 'lucide-react';
 
 function App() {
   const { authStatus, logout, pendingEnergy, isBrownout, fetchLiveStatus, isApiConnected } = useWalletStore();
-  const [activeTab, setActiveTab] = useState<'assets' | 'activity' | 'devices' | 'grid'>('assets');
+  const [activeTab, setActiveTab] = useState<'assets' | 'activity' | 'devices' | 'grid' | 'attack'>('assets');
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Mock Merkle Root
@@ -45,19 +46,18 @@ function App() {
       {/* Desktop Navigation Sidebar */}
       <aside className="hidden lg:flex w-[220px] flex-col border-r border-white/5 bg-[#0f172a]/80 backdrop-blur-xl z-20 shrink-0">
         <div className="p-5 border-b border-white/5 flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-[#064E3B] flex items-center justify-center">
-            <Zap className="text-joulet-green" size={16} />
-          </div>
+          <img src="/mascot.png" alt="Joulet" className="w-8 h-8 object-contain" />
           <span className="font-display font-black text-joulet-green tracking-wide text-lg">JOULET</span>
         </div>
 
         <div className="flex-1 px-3 py-4 flex flex-col justify-between">
           <div className="space-y-1">
-            <SidebarButton active={activeTab === 'assets'} onClick={() => setActiveTab('assets')} icon={<Zap size={18} />} label="Wallet Assets" accentColor="joulet-green" />
-            <SidebarButton active={activeTab === 'activity'} onClick={() => setActiveTab('activity')} icon={<LayoutList size={18} />} label="Network Logs" accentColor="joulet-blue" />
-            <SidebarButton active={activeTab === 'devices'} onClick={() => setActiveTab('devices')} icon={<Cpu size={18} />} label="IOT Devices" accentColor="joulet-indigo" />
+            <SidebarButton active={activeTab === 'assets'} onClick={() => setActiveTab('assets')} icon={<img src="/yield-icon.png" alt="Assets" className="w-7 h-7 object-contain" />} label="Wallet Assets" accentColor="joulet-green" />
+            <SidebarButton active={activeTab === 'activity'} onClick={() => setActiveTab('activity')} icon={<img src="/nft-icon.png" alt="Logs" className="w-7 h-7 object-contain" />} label="Network Logs" accentColor="joulet-blue" />
+            <SidebarButton active={activeTab === 'devices'} onClick={() => setActiveTab('devices')} icon={<img src="/solar-icon.png" alt="Devices" className="w-7 h-7 object-contain" />} label="IOT Devices" accentColor="joulet-indigo" />
+            <SidebarButton active={activeTab === 'attack'} onClick={() => setActiveTab('attack')} icon={<AlertTriangle size={24} />} label="Simulations" accentColor="joulet-red" />
             <div className="xl:hidden">
-              <SidebarButton active={activeTab === 'grid'} onClick={() => setActiveTab('grid')} icon={<Activity size={18} />} label="Grid Status" accentColor="joulet-amber" />
+              <SidebarButton active={activeTab === 'grid'} onClick={() => setActiveTab('grid')} icon={<img src="/consensus-icon.png" alt="Status" className="w-7 h-7 object-contain" />} label="Grid Status" accentColor="joulet-amber" />
             </div>
           </div>
 
@@ -132,17 +132,19 @@ function App() {
             {activeTab === 'assets' && <AssetView />}
             {activeTab === 'activity' && <ActivityView />}
             {activeTab === 'devices' && <DeviceView />}
+            {activeTab === 'attack' && <AttackView />}
             {activeTab === 'grid' && <div className="xl:hidden h-full"><GridStatusView /></div>}
           </div>
         </div>
 
         {/* Mobile Tab Navigation */}
         <div className="lg:hidden bg-[#0a0f1e]/95 backdrop-blur-lg border-t border-white/5 flex justify-around items-center pt-2 pb-5 px-2 z-30 shrink-0">
-          <TabButton active={activeTab === 'assets'} onClick={() => setActiveTab('assets')} icon={<Zap size={20} />} label="Assets" accentColor="joulet-green" />
-          <TabButton active={activeTab === 'activity'} onClick={() => setActiveTab('activity')} icon={<LayoutList size={20} />} label="Activity" accentColor="joulet-blue" />
-          <TabButton active={activeTab === 'devices'} onClick={() => setActiveTab('devices')} icon={<Cpu size={20} />} label="Devices" accentColor="joulet-indigo" />
+          <TabButton active={activeTab === 'assets'} onClick={() => setActiveTab('assets')} icon={<img src="/yield-icon.png" alt="Assets" className="w-7 h-7 object-contain" />} label="Assets" accentColor="joulet-green" />
+          <TabButton active={activeTab === 'activity'} onClick={() => setActiveTab('activity')} icon={<img src="/nft-icon.png" alt="Activity" className="w-7 h-7 object-contain" />} label="Activity" accentColor="joulet-blue" />
+          <TabButton active={activeTab === 'attack'} onClick={() => setActiveTab('attack')} icon={<AlertTriangle size={18} />} label="Simulate" accentColor="joulet-red" />
+          <TabButton active={activeTab === 'devices'} onClick={() => setActiveTab('devices')} icon={<img src="/solar-icon.png" alt="Devices" className="w-7 h-7 object-contain" />} label="Devices" accentColor="joulet-indigo" />
           <div className="xl:hidden">
-            <TabButton active={activeTab === 'grid'} onClick={() => setActiveTab('grid')} icon={<Activity size={20} />} label="Status" accentColor="joulet-amber" />
+            <TabButton active={activeTab === 'grid'} onClick={() => setActiveTab('grid')} icon={<img src="/consensus-icon.png" alt="Status" className="w-7 h-7 object-contain" />} label="Status" accentColor="joulet-amber" />
           </div>
         </div>
       </main>
