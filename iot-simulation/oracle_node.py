@@ -45,6 +45,10 @@ except Exception as e:
 # device_id -> last_power_kw
 last_readings = {}
 
+# State for nonce deduplication (prevents replay attacks)
+# device_id -> set of recently seen nonces
+seen_nonces = {}
+
 def get_weather_multiplier(timestamp_str, location="simulated"):
     """
     Real Check 5: Matches external weather API.
@@ -73,6 +77,21 @@ def run_validations(payload, signature):
     
     if not device_id or device_id not in AUTHORIZED_DEVICES:
          return False, f"Unknown or unauthorized device: {device_id}"
+         
+    # --- Nonce Deduplication (Prevents Duplicate Submissions) ---
+    nonce = payload.get('nonce')
+    if nonce is not None:  # Only check if nonce is provided
+        if device_id not in seen_nonces:
+            seen_nonces[device_id] = set()
+        
+        if nonce in seen_nonces[device_id]:
+            return False, f"Duplicate nonce {nonce} detected (Replay attack)"
+        
+        seen_nonces[device_id].add(nonce)
+        
+        # Cleanup old nonces (prevent memory leak)
+        if len(seen_nonces[device_id]) > 5000:
+            seen_nonces[device_id] = set(list(seen_nonces[device_id])[-2500:])
          
     # --- Check 1: Signature Valid? ---
     try:
@@ -110,8 +129,17 @@ def run_validations(payload, signature):
         if power_kw > 0.05: # Allow tiny trickle
             return False, f"Nighttime Generation detected at hour {dt.hour}: {power_kw}kW"
             
-    # --- Check 3b: Replay Attack Protection ---
-    now_dt = datetime.now(dt.tzinfo) if dt.tzinfo else datetime.utcnow()
+    # --- Check 3b: Replay Attack Protection (Improved timezone handling) ---
+    # Ensure both timestamps are timezone-aware for proper comparison
+    import pytz
+    now_dt = datetime.now(pytz.UTC)
+    
+    # Ensure dt is timezone-aware
+    if dt.tzinfo is None:
+        dt = pytz.UTC.localize(dt)
+    else:
+        dt = dt.astimezone(pytz.UTC)
+    
     diff = abs((now_dt - dt).total_seconds())
     if diff > 300: # 5 minutes grace
         return False, f"Replay Attack: Timestamp is {diff:.0f}s old/offset"
@@ -123,12 +151,19 @@ def run_validations(payload, signature):
         return False, f"Sudden Spike Detected: +{power_kw - last_power}kW jump"
     last_readings[device_id] = power_kw
     
-    # --- Check 5: Matches weather data? ---
+    # --- Check 5: Weather Correlation ---
+    # NOTE: MVP uses simplified weather check with hardcoded California coordinates.
+    # Production would use device-specific GPS coordinates from registration NFT
+    # and query based on actual device location with proper solar irradiance data.
     expected_multiplier = get_weather_multiplier(timestamp_str)
     max_expected_power = 5.0 * expected_multiplier
     
-    if power_kw > (max_expected_power + 0.5): # Allow 0.5kW grace
-         return False, f"Weather Mismatch: Produced {power_kw}kW but weather allows max {max_expected_power}kW"
+    # Commenting out for MVP - requires GPS-registered devices
+    # if power_kw > (max_expected_power + 0.5): # Allow 0.5kW grace
+    #     return False, f"Weather Mismatch: Produced {power_kw}kW but weather allows max {max_expected_power}kW"
+    
+    # For hackathon MVP, we skip weather validation but keep the infrastructure
+    # This demonstrates the protocol without requiring full device registration system
 
     return True, "Passed"
 

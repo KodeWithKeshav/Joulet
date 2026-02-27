@@ -5,7 +5,7 @@ import TransactionManager from '../core/transactionManager';
 import { ethers } from 'ethers';
 
 const HARDHAT_RPC = 'http://127.0.0.1:8545';
-const API_URL = "http://127.0.0.1:5000/api/status"; // Main Producer API
+const API_URL = "http://127.0.0.1:5004/api/status"; // Main Producer API
 const CONSENSUS_API_URL = "http://127.0.0.1:5010/api/consensus/status"; // Oracle Consensus Engine
 const GRID_API_URL = "http://127.0.0.1:5004/api/grid/status"; // Real RLC physics grid data
 
@@ -81,6 +81,13 @@ export const useWalletStore = create<WalletState>()(
                     TransactionManager.initDexPool(HARDHAT_PROFILES[0].privateKey).catch(console.error);
                 }
 
+                // Initialize fiat balance for new users (Consumers get $200 starter balance)
+                const state = get();
+                const existingFiatBalance = state.fiatBalances[profileId];
+                const newFiatBalances = existingFiatBalance === undefined 
+                    ? { ...state.fiatBalances, [profileId]: profileId === 0 ? 0 : 200 }
+                    : state.fiatBalances;
+
                 set({
                     authStatus: 'unlocked',
                     activeProfileId: profileId,
@@ -89,7 +96,8 @@ export const useWalletStore = create<WalletState>()(
                     jltBalance: 0,
                     totalKwhGenerated: 0,
                     verifiedBatches: 0,
-                    pendingEnergy: 0
+                    pendingEnergy: 0,
+                    fiatBalances: newFiatBalances
                 });
             },
 

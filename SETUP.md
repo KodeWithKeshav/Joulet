@@ -249,6 +249,8 @@ npm run deploy
 
 **Copy the contract address, then update .env files in iot-simulation and client**
 
+**⚠️ Configuration Note:** The default demo configuration uses `currentDifficulty = 10` (10 kWh = 1 JLT) for fast token visualization. For production deployment, set difficulty to `1000` by editing `blockchain/contracts/JouletToken.sol` line 24 before deployment, or adjust via smart contract after deployment.
+
 #### Terminal 3: Start API Bridge
 ```bash
 cd iot-simulation

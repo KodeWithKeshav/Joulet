@@ -7,10 +7,12 @@ const ActivityView: React.FC = () => {
 
     return (
         <div className="p-6 md:p-8 space-y-5 h-full relative z-10 flex flex-col">
-            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2 pb-3 border-b border-white/5">
-                <Activity size={14} className="text-joulet-blue" />
-                Network Activity Log
-            </h2>
+            <div className="pb-3 border-b border-white/5">
+                <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                    <Activity size={14} className="text-joulet-blue" />
+                    Network Activity Log
+                </h2>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 flex-1 overflow-y-auto no-scrollbar pb-4 content-start">
 

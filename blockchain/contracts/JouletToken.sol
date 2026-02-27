@@ -12,6 +12,11 @@ import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
  *         Includes integrated Carbon Credit NFT tracking (lightweight, no full ERC721
  *         to avoid event namespace collision with ERC20 in a single contract).
  *         In production, the Carbon NFT would be a separate ERC721 contract.
+ * 
+ * @dev CONFIGURATION NOTE:
+ *      Demo/MVP: currentDifficulty = 10 (10 kWh = 1 JLT) for fast token visualization
+ *      Production: Set to 1000 (1000 kWh = 1 JLT) for economic model compliance
+ *      Adjustable via setDifficulty() function
  */
 contract JouletToken is ERC20, Ownable {
     using ECDSA for bytes32;
@@ -21,6 +26,7 @@ contract JouletToken is ERC20, Ownable {
     
     // Dynamic difficulty: Engine adjusts this to control minting rate.
     // In a fully trustless system, the contract would calculate this via block timestamps.
+    // DEMO CONFIGURATION: Set to 10 for hackathon (change to 1000 for production)
     uint256 public currentDifficulty = 10; 
 
     // ---------- Fractional JLT Tracking ----------

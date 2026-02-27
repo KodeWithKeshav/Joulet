@@ -24,6 +24,23 @@ const LoginScreen: React.FC = () => {
         }
     };
 
+    const getRoleDescription = (id: number) => {
+        switch (id) {
+            case 0: return "Generate energy from IoT devices and earn JLT tokens";
+            case 1: 
+            case 2: 
+                return "Buy JLT tokens to support clean energy grid";
+            default: return "";
+        }
+    };
+
+    const getRoleBadge = (id: number) => {
+        if (id === 0) {
+            return <span className="px-2 py-1 bg-amber-500/20 border border-amber-500/30 text-amber-400 text-[9px] font-bold uppercase tracking-wider rounded">Producer</span>;
+        }
+        return <span className="px-2 py-1 bg-joulet-blue/20 border border-joulet-blue/30 text-joulet-blue text-[9px] font-bold uppercase tracking-wider rounded">Consumer</span>;
+    };
+
     return (
         <div className="min-h-screen w-screen bg-[#0a0f1e] flex flex-col items-center justify-center p-6 relative overflow-hidden">
             {/* Subtle background glow */}
@@ -35,10 +52,10 @@ const LoginScreen: React.FC = () => {
                 <div className="text-center mb-14">
                     <img src="/mascot.png" alt="Joulet" className="w-16 h-16 mx-auto object-contain mb-6" />
                     <h1 className="font-display text-4xl md:text-5xl font-black text-white tracking-tight mb-3">
-                        Select Persona
+                        Login to Joulet
                     </h1>
-                    <p className="text-slate-400 max-w-md mx-auto leading-relaxed text-sm">
-                        Choose an active profile to simulate transactions on the <span className="text-joulet-green font-semibold">Joulet Network</span>.
+                    <p className="text-slate-400 max-w-lg mx-auto leading-relaxed text-sm">
+                        Choose your role: <span className="text-amber-400 font-semibold">Producers</span> generate and sell energy, while <span className="text-joulet-blue font-semibold">Consumers</span> buy energy tokens.
                     </p>
                 </div>
 
@@ -50,7 +67,7 @@ const LoginScreen: React.FC = () => {
                             onClick={() => login(profile.id)}
                             className={`group bg-[#0f172a] border border-white/8 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:bg-[#162032] ${getAccent(profile.id)}`}
                         >
-                            <div className="flex justify-between items-start mb-8">
+                            <div className="flex justify-between items-start mb-6">
                                 <div className="p-3 rounded-xl bg-white/5 border border-white/5">
                                     {getIcon(profile.id)}
                                 </div>
@@ -59,16 +76,22 @@ const LoginScreen: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div>
-                                <h3 className="font-display text-xl font-black text-white mb-1">
-                                    {profile.name}
-                                </h3>
-                                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-5">
-                                    {profile.role}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="font-display text-xl font-black text-white">
+                                        {profile.name}
+                                    </h3>
+                                    {getRoleBadge(profile.id)}
+                                </div>
+
+                                <p className="text-xs text-slate-400 leading-relaxed min-h-[2.5rem]">
+                                    {getRoleDescription(profile.id)}
                                 </p>
 
-                                <div className="text-[10px] font-mono text-slate-500 bg-black/30 px-3 py-2 rounded-lg border border-white/5 truncate">
-                                    {`Key: ...${profile.privateKey.substring(60)}`}
+                                <div className="pt-2 border-t border-white/5">
+                                    <div className="text-[10px] font-mono text-slate-500 bg-black/30 px-3 py-2 rounded-lg border border-white/5 truncate">
+                                        {`${profile.role} • ...${profile.privateKey.substring(60)}`}
+                                    </div>
                                 </div>
                             </div>
                         </div>

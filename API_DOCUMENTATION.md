@@ -10,6 +10,21 @@ No authentication required for demo. In production, implement API key authentica
 
 ---
 
+## ⚙️ Configuration
+
+### Token Economics
+
+**Demo Configuration (Current):**
+- Mining Difficulty: 10 kWh = 1 JLT
+- Optimized for real-time demonstration and faster token visualization
+
+**Production Configuration (Recommended):**
+- Mining Difficulty: 1000 kWh = 1 JLT
+- Aligns with economic model and sustainable tokenomics
+- Adjustable via smart contract `setDifficulty()` function
+
+---
+
 ## Health & Status Endpoints
 
 ### 1. Health Check

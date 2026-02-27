@@ -10,12 +10,16 @@ import DashboardView from './components/DashboardView';
 import ConfirmModal from './components/ConfirmModal';
 import LoginScreen from './components/LoginScreen';
 import IntroOverlay from './components/IntroOverlay';
-import { RadioTower, AlertTriangle, Users, LayoutDashboard } from 'lucide-react';
+import { RadioTower, AlertTriangle, LayoutDashboard, LogOut } from 'lucide-react';
+import { HARDHAT_PROFILES } from './core/keyManager';
 
 function App() {
-  const { authStatus, login, activeProfileId, pendingEnergy, isBrownout, fetchLiveStatus, isApiConnected } = useWalletStore();
+  const { authStatus, logout, activeProfileId, pendingEnergy, isBrownout, fetchLiveStatus, isApiConnected } = useWalletStore();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'assets' | 'activity' | 'devices' | 'grid' | 'security'>('dashboard');
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Get current profile info
+  const currentProfile = activeProfileId !== null ? HARDHAT_PROFILES[activeProfileId] : null;
 
   // Mock Merkle Root
   const mockMerkle = "0x8a3c9b7e4d2f1a6b0c8e9d4f1a2b3c4d5e6f7a8b9c0... (Mocked)";
@@ -65,18 +69,40 @@ function App() {
           </div>
 
           <div className="pb-3 space-y-2">
-            <div
-              onClick={() => login(activeProfileId === 0 ? 1 : 0)}
-              className="group flex flex-col w-full p-3 rounded-xl cursor-pointer transition-all border border-joulet-green/20 bg-joulet-green/5 hover:bg-joulet-green/10 text-white"
-            >
-              <div className="flex items-center space-x-2 text-joulet-green mb-1.5">
-                <Users size={16} />
-                <span className="text-[10px] font-bold uppercase tracking-widest">Judge Toggle</span>
+            {/* Current Profile Info */}
+            <div className="bg-[#0a0f1e]/50 border border-white/10 rounded-xl p-3">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  {activeProfileId === 0 ? (
+                    <img src="/solar-icon.png" alt="Producer" className="w-8 h-8 object-contain" />
+                  ) : (
+                    <img src="/home-icon.png" alt="Consumer" className="w-8 h-8 object-contain" />
+                  )}
+                  <div>
+                    <div className="text-xs font-bold text-white">
+                      {currentProfile?.name}
+                    </div>
+                    <div className="text-[10px] text-slate-400 uppercase tracking-wider">
+                      {currentProfile?.role}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <span className="text-xs font-medium text-slate-300">
-                Viewing as: <span className="text-white font-bold">{activeProfileId === 0 ? "Producer" : "Consumer"}</span>
-              </span>
+              <div className="text-[9px] font-mono text-slate-500 bg-black/30 px-2 py-1.5 rounded border border-white/5 truncate">
+                {currentProfile?.name.substring(0, 20)}...
+              </div>
             </div>
+
+            {/* Logout Button */}
+            <button
+              onClick={logout}
+              className="group flex items-center justify-center gap-2 w-full p-3 rounded-xl cursor-pointer transition-all border border-joulet-red/20 bg-joulet-red/5 hover:bg-joulet-red/10 hover:border-joulet-red/30 text-white"
+            >
+              <LogOut size={16} className="text-joulet-red" />
+              <span className="text-xs font-bold uppercase tracking-wider text-joulet-red">
+                Logout
+              </span>
+            </button>
           </div>
         </div>
 
@@ -169,6 +195,7 @@ function App() {
         merkleRoot={mockMerkle}
         onSuccess={() => setIsModalOpen(false)}
       />
+
     </div>
   );
 }

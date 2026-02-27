@@ -202,21 +202,22 @@ def process_reading(kwh, device_id='unknown'):
         auto_reported = False
 
         if should_report:
-            now = time.time()
-            # Calculate time since last mint
-            last_time = time.mktime(datetime.fromisoformat(metrics.last_report_time).timetuple()) if metrics.last_report_time else (now - TARGET_MINT_INTERVAL)
-            time_delta = now - last_time
+            # NOTE: Difficulty adjustment disabled in API bridge - consensus engine handles this now
+            # This prevents conflicting difficulty adjustments from multiple sources
+            # Original code used TARGET_MINT_INTERVAL = 15s with 1.1x/0.9x multipliers
+            # Consensus engine uses more sophisticated device-normalized DDA
             
-            # Adjust Difficulty
-            old_diff = metrics.reporting_threshold
-            if time_delta < TARGET_MINT_INTERVAL:
-                # Too fast! Increase difficulty
-                metrics.reporting_threshold = min(DIFF_MAX, metrics.reporting_threshold * 1.1)
-                print(f"[DDA] ⚡️ Mining too fast ({time_delta:.1f}s < {TARGET_MINT_INTERVAL}s). Difficulty UP: {old_diff:.2f} -> {metrics.reporting_threshold:.2f} kWh")
-            else:
-                # Too slow! Decrease difficulty (make it easier)
-                metrics.reporting_threshold = max(DIFF_MIN, metrics.reporting_threshold * 0.9)
-                print(f"[DDA] 🐢 Mining too slow ({time_delta:.1f}s > {TARGET_MINT_INTERVAL}s). Difficulty DOWN: {old_diff:.2f} -> {metrics.reporting_threshold:.2f} kWh")
+            # Uncomment for standalone operation without consensus engine:
+            # now = time.time()
+            # last_time = time.mktime(datetime.fromisoformat(metrics.last_report_time).timetuple()) if metrics.last_report_time else (now - 15.0)
+            # time_delta = now - last_time
+            # old_diff = metrics.reporting_threshold
+            # if time_delta < 15.0:
+            #     metrics.reporting_threshold = min(DIFF_MAX, metrics.reporting_threshold * 1.1)
+            #     print(f"[DDA] ⚡️ Mining too fast ({time_delta:.1f}s < 15.0s). Difficulty UP: {old_diff:.2f} -> {metrics.reporting_threshold:.2f} kWh")
+            # else:
+            #     metrics.reporting_threshold = max(DIFF_MIN, metrics.reporting_threshold * 0.9)
+            #     print(f"[DDA] 🐢 Mining too slow ({time_delta:.1f}s > 15.0s). Difficulty DOWN: {old_diff:.2f} -> {metrics.reporting_threshold:.2f} kWh")
             
             if oracle:
                 # capture amount to report

@@ -22,6 +22,13 @@ const AssetView: React.FC = () => {
     return (
         <div className="p-6 md:p-8 space-y-6 h-full relative z-10 flex flex-col justify-center">
 
+            <div className="pb-2 border-b border-white/5">
+                <h2 className="text-xl font-bold text-white tracking-wide flex items-center gap-2">
+                    💰 Wallet Assets
+                </h2>
+                <p className="text-xs text-slate-400 mt-1">Manage your JLT tokens and funds</p>
+            </div>
+
             {/* Primary Balance Section */}
             <div className="flex flex-col gap-6">
                 <div className="flex flex-wrap items-start justify-start gap-8 md:gap-14">

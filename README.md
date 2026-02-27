@@ -4,6 +4,8 @@
 
 Joulet is a cutting-edge energy trading platform that bridges the gap between physical power grids and blockchain-based markets. It features a "Digital Twin" architecture where a real **Modelica** physics simulation drives the entire ecosystem, allowing for realistic testing of energy generation, grid instability (brownouts), and automated smart contract responses.
 
+**Note:** This is an MVP demonstrating the cryptographic protocol and oracle architecture. Production deployment would require distributed infrastructure and hardware-level security (TEEs).
+
 ---
 
 ## 🏗 System Architecture
@@ -63,6 +65,17 @@ The frontend provides a dedicated **Grid Monitor** view that mirrors the state o
 - Live Voltage Gauge (Green/Red)
 - Real-time Sine Wave visualization
 - Historical Log of grid anomalies
+
+---
+
+## ⚙️ Configuration Note
+
+**Token Conversion Rate:**
+- **Hackathon/Demo Configuration:** 10 kWh = 1 JLT (for fast demonstrations and real-time token visualization)
+- **Production Recommendation:** 1000 kWh = 1 JLT (per economic model in proposal)
+- **Adjustable:** The `currentDifficulty` parameter in `blockchain/contracts/JouletToken.sol` (line 24) is dynamically adjustable
+
+The demo uses an accelerated minting rate (100x faster) to showcase token generation during hackathon presentations. For production deployment, this would be changed to 1000 before deploying the contract.
 
 ---
 

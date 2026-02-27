@@ -74,12 +74,16 @@ Your Machine
 
 | Parameter | Value | Meaning |
 |-----------|-------|---------|
-| Mining Difficulty | 10 | 10 kWh = 1 JLT token |
+| Mining Difficulty (Demo) | 10 | 10 kWh = 1 JLT token |
+| Mining Difficulty (Production) | 1000 | 1000 kWh = 1 JLT token |
 | JLT Rate | $0.50 | 1 JLT costs $0.50 |
 | Reporting Threshold | 10 kWh | Energy amount to trigger blockchain report |
+| Carbon NFT Threshold | 1220 kWh | Auto-mint carbon credit NFT |
 | Chain ID | 1337 | Hardhat test network ID |
-| API Port | 5000 | Where to access REST API |
-| Dashboard Port | 5173 | Where to access UI |
+| API Port | 5004 | Where to access REST API |
+| Dashboard Port | 5175 | Where to access UI |
+
+**⚠️ Configuration Note:** Demo uses accelerated 10 kWh rate for real-time visualization. Production should use 1000 kWh rate per economic model.
 
 ---
 
