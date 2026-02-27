@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Joulet — Decentralized Energy Trading Platform</title>
+    <meta name="description"
+        content="Joulet is a decentralized energy trading platform with real-time physics simulation. Mint JLT tokens through verified solar generation. Trade renewable energy on-chain." />
+    <meta name="theme-color" content="#0f172a" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800;900&display=swap"
+        rel="stylesheet" />
+
+    <!-- GSAP + ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+
+    <link rel="stylesheet" href="/styles.css" />
+</head>
+
+<body>
+
+    <!-- ===== ULTRA PREMIUM LOADER ===== -->
+    <div id="ultra-loader" class="ultra-loader">
+        <!-- Circuit corner decorations -->
+        <svg class="ul-circuit ul-circuit-tl" viewBox="0 0 80 80">
+            <path d="M0 40 L20 40 L30 20 L40 20" fill="none" stroke="currentColor" stroke-width="1" />
+            <path d="M40 0 L40 15 L25 30 L25 40" fill="none" stroke="currentColor" stroke-width="1" />
+            <circle cx="20" cy="40" r="2" fill="currentColor" />
+            <circle cx="40" cy="20" r="2" fill="currentColor" />
+        </svg>
+        <svg class="ul-circuit ul-circuit-br" viewBox="0 0 80 80">
+            <path d="M80 40 L60 40 L50 60 L40 60" fill="none" stroke="currentColor" stroke-width="1" />
+            <path d="M40 80 L40 65 L55 50 L55 40" fill="none" stroke="currentColor" stroke-width="1" />
+            <circle cx="60" cy="40" r="2" fill="currentColor" />
+            <circle cx="40" cy="60" r="2" fill="currentColor" />
+        </svg>
+
+        <div class="ul-container">
+            <!-- Glowing background rings -->
+            <div class="ul-ring ul-ring-1"></div>
+            <div class="ul-ring ul-ring-2"></div>
+            <div class="ul-ring ul-ring-3"></div>
+
+            <div class="ul-center">
+                <img src="/assets/mascot.png" alt="Loading Joulet..." class="ul-mascot" />
+                <div class="ul-pulse"></div>
+            </div>
+
+            <div class="ul-text-box">
+                <div class="ul-title">JOULET</div>
+                <div class="ul-subtitle" id="ul-status-text">INITIALIZING DECENTRALIZED ENERGY PROTOCOL...</div>
+
+                <div class="ul-progress-bar">
+                    <div class="ul-progress-fill" id="ul-progress-fill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== AURORA BACKGROUND EFFECT ===== -->
+    <div class="aurora-bg" id="aurora-bg">
+        <div class="aurora-layer aurora-1"></div>
+        <div class="aurora-layer aurora-2"></div>
+        <div class="aurora-layer aurora-3"></div>
+    </div>
+
+    <!-- ===== NAVIGATION ===== -->
+    <nav id="main-nav" class="navbar">
+        <div class="nav-inner">
+            <a href="#" class="nav-logo" id="nav-logo">
+                <img src="/assets/mascot.png" alt="Joulet" class="logo-icon-img" />
+                <span class="logo-text">Joulet</span>
+            </a>
+            <div class="nav-links" id="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#showcase" class="nav-link">Showcase</a>
+                <a href="#section-bento" class="nav-link">Grid Monitor</a>
+                <a href="#section-cta" class="nav-link">JLT Token</a>
+            </div>
+            <a href="http://localhost:5174" class="nav-cta" id="nav-cta" target="_blank">GET JOULET</a>
+            <button class="nav-hamburger" id="nav-hamburger" aria-label="Open navigation menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ===== MOBILE MENU OVERLAY ===== -->
+    <div class="mobile-menu" id="mobile-menu">
+        <div class="mobile-menu-inner">
+            <a href="#features" class="mobile-link">Features</a>
+            <a href="#showcase" class="mobile-link">Showcase</a>
+            <a href="#section-bento" class="mobile-link">Grid Monitor</a>
+            <a href="#section-cta" class="mobile-link">JLT Token</a>
+            <a href="http://localhost:5174" class="mobile-cta" target="_blank">GET JOULET</a>
+        </div>
+    </div>
+
+    <!-- ===== SCROLL INDICATOR ===== -->
+    <div class="scroll-indicator" id="scroll-indicator">
+        <div class="scroll-dot active" data-section="0"></div>
+        <div class="scroll-dot" data-section="1"></div>
+        <div class="scroll-dot" data-section="2"></div>
+        <div class="scroll-dot" data-section="3"></div>
+        <div class="scroll-dot" data-section="4"></div>
+        <div class="scroll-dot" data-section="5"></div>
+        <div class="scroll-dot" data-section="6"></div>
+    </div>
+
+    <!-- ===== FIXED MASCOT ===== -->
+    <div class="fixed-mascot" id="fixed-mascot">
+        <img src="/assets/mascot.png" alt="Joulet Energy Bolt" />
+    </div>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main id="smooth-content">
+
+        <!-- SECTION 1: HERO REVEAL -->
+        <section class="section section-hero" id="section-hero">
+            <div class="hero-particles" id="hero-particles"></div>
+            <!-- Hero background image -->
+            <div class="hero-bg-image" id="hero-bg-image">
+                <img src="/assets/solar-hero.png" alt="Solar Blockchain Network" />
+            </div>
+            <div class="hero-content">
+                <h1 class="hero-title" id="hero-title">
+                    <span class="hero-line">POWER</span>
+                    <span class="hero-line">THE</span>
+                    <span class="hero-line hero-line-accent">GRID</span>
+                </h1>
+                <p class="hero-sub" id="hero-sub">Decentralized energy trading with real-time physics simulation. Mint
+                    JLT through verified solar generation.</p>
+                <div class="hero-cta-row">
+                    <a href="http://localhost:5174" class="btn btn-primary btn-glow" target="_blank">Launch
+                        Dashboard</a>
+                    <a href="#showcase" class="btn btn-secondary btn-outline-glow">Explore Platform</a>
+                </div>
+            </div>
+            <div class="hero-glow"></div>
+            <div class="hero-glow hero-glow-2"></div>
+            <!-- Scroll hint -->
+            <div class="scroll-hint" id="scroll-hint">
+                <div class="scroll-mouse">
+                    <div class="scroll-wheel"></div>
+                </div>
+                <span>Scroll to explore</span>
+            </div>
+        </section>
+
+        <!-- SECTION 2: FLOATING IMAGE SHOWCASE -->
+        <section class="section section-showcase" id="showcase">
+            <div class="showcase-bg-particles" id="showcase-particles"></div>
+            <div class="showcase-header" id="showcase-header">
+
+                <h2 class="showcase-title">The Future of <span class="text-gradient">Energy</span></h2>
+                <p class="showcase-sub">From solar panels to blockchain — see how Joulet transforms energy into
+                    tradeable digital assets.</p>
+            </div>
+            <div class="showcase-grid" id="showcase-grid">
+                <div class="showcase-card" id="sc-1">
+                    <div class="showcase-card-img">
+                        <img src="/assets/solar-hero.png" alt="Solar Blockchain Network" loading="lazy" />
+                        <div class="showcase-card-overlay"></div>
+                    </div>
+                    <div class="showcase-card-content">
+                        <span class="showcase-tag">Solar Infrastructure</span>
+                        <h3>Solar Grid Integration</h3>
+                        <p>Solar panels feed verified energy into the grid, automatically minting JLT tokens through
+                            smart contracts.</p>
+                    </div>
+                    <div class="showcase-card-glow"></div>
+                </div>
+                <div class="showcase-card" id="sc-2">
+                    <div class="showcase-card-img">
+                        <img src="/assets/smart-meter.png" alt="Smart Energy Meter" loading="lazy" />
+                        <div class="showcase-card-overlay"></div>
+                    </div>
+                    <div class="showcase-card-content">
+                        <span class="showcase-tag">IoT Oracle</span>
+                        <h3>Smart Metering</h3>
+                        <p>Real-time RMS voltage monitoring with blockchain reporting.</p>
+                    </div>
+                    <div class="showcase-card-glow"></div>
+                </div>
+                <div class="showcase-card" id="sc-3">
+                    <div class="showcase-card-img">
+                        <img src="/assets/token-mint.png" alt="Token Minting" loading="lazy" />
+                        <div class="showcase-card-overlay"></div>
+                    </div>
+                    <div class="showcase-card-content">
+                        <span class="showcase-tag">JLT Token</span>
+                        <h3>Energy to Token</h3>
+                        <p>10 kWh of verified generation = 1 JLT minted on-chain.</p>
+                    </div>
+                    <div class="showcase-card-glow"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: PRODUCT MOCKUP — BUILT WITH CSS/SVG -->
+        <section class="section section-mockup" id="section-mockup">
+            <div class="mockup-wrapper" id="mockup-wrapper">
+                <div class="mockup-phone" id="mockup-phone">
+                    <!-- Inline CSS Dashboard Mockup -->
+                    <div class="dashboard-mockup">
+                        <div class="dm-header">
+                            <div class="dm-logo">
+                                <img src="/assets/mascot.png" alt="Joulet"
+                                    style="width: 20px; height: 20px; object-fit: contain;" />
+                                <span>JOULET</span>
+                            </div>
+                            <div class="dm-status">
+                                <span class="dm-dot dm-dot-green"></span>
+                                <span>Connected</span>
+                            </div>
+                        </div>
+                        <div class="dm-gauge">
+                            <div class="dm-gauge-label">Live Grid Voltage</div>
+                            <div class="dm-gauge-value">230.0<span>V</span></div>
+                            <div class="dm-gauge-bar">
+                                <div class="dm-gauge-fill"></div>
+                            </div>
+                            <div class="dm-gauge-status">✓ GRID STABLE</div>
+                        </div>
+                        <div class="dm-stats">
+                            <div class="dm-stat">
+                                <div class="dm-stat-label">JLT Balance</div>
+                                <div class="dm-stat-value dm-emerald" id="dm-jlt-value">500,000 JLT</div>
+                            </div>
+                            <div class="dm-stat">
+                                <div class="dm-stat-label">Pending Buffer</div>
+                                <div class="dm-stat-value dm-amber" id="dm-pending-value">7.5 / 10 kWh</div>
+                            </div>
+                        </div>
+                        <div class="dm-chart">
+                            <svg viewBox="0 0 200 60" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="dmGrad" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#34d399" stop-opacity="0.4" />
+                                        <stop offset="100%" stop-color="#34d399" stop-opacity="0" />
+                                    </linearGradient>
+                                </defs>
+                                <path
+                                    d="M0,40 Q10,38 20,35 T40,42 T60,30 T80,35 T100,25 T120,32 T140,20 T160,28 T180,15 T200,22 L200,60 L0,60 Z"
+                                    fill="url(#dmGrad)" />
+                                <path
+                                    d="M0,40 Q10,38 20,35 T40,42 T60,30 T80,35 T100,25 T120,32 T140,20 T160,28 T180,15 T200,22"
+                                    fill="none" stroke="#34d399" stroke-width="2" />
+                            </svg>
+                        </div>
+                        <div class="dm-blocks">
+                            <div class="dm-block">
+                                <span class="dm-block-tag dm-tag-mint">MINT</span>
+                                <span class="dm-block-text">10 kWh → 1 JLT (on-chain)</span>
+                            </div>
+                            <div class="dm-block">
+                                <span class="dm-block-tag dm-tag-trade">DEX SWAP</span>
+                                <span class="dm-block-text">Buy 100 JLT @ $0.50</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mockup-shine"></div>
+                </div>
+                <div class="mockup-caption">
+
+                    <h2 class="mockup-title">Real-time grid<br />monitoring.</h2>
+                    <p class="mockup-desc">Watch voltage telemetry, mint JLT tokens through verified energy production,
+                        and trade on a decentralized marketplace — all from one interface.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: PARALLAX IMAGE STRIP -->
+        <section class="section section-parallax-strip" id="section-parallax">
+            <div class="parallax-image-row">
+                <div class="parallax-img-card" id="pimg-1">
+                    <img src="/assets/digital-twin.png" alt="Digital Twin Grid" loading="lazy" />
+                    <div class="parallax-img-label">
+                        <span class="parallax-tag">Digital Twin</span>
+                        <span class="parallax-desc">Real-time grid simulation</span>
+                    </div>
+                </div>
+                <div class="parallax-img-card" id="pimg-2">
+                    <img src="/assets/energy-network.png" alt="Energy Trading Network" loading="lazy" />
+                    <div class="parallax-img-label">
+                        <span class="parallax-tag">P2P Network</span>
+                        <span class="parallax-desc">Decentralized marketplace</span>
+                    </div>
+                </div>
+                <div class="parallax-img-card" id="pimg-3">
+                    <img src="/assets/token-mint.png" alt="Token Minting" loading="lazy" />
+                    <div class="parallax-img-label">
+                        <span class="parallax-tag">Token Forge</span>
+                        <span class="parallax-desc">Energy-backed minting</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 5: BOLD STATEMENT -->
+        <section class="section section-statement" id="section-statement">
+            <div class="statement-bg" id="statement-bg">
+                <div class="statement-shape shape-1"></div>
+                <div class="statement-shape shape-2"></div>
+                <div class="statement-shape shape-3"></div>
+            </div>
+            <!-- Statement background image -->
+            <div class="statement-bg-image">
+                <img src="/assets/energy-network.png" alt="Energy Network" />
+            </div>
+            <div class="statement-content" id="statement-content">
+                <h2 class="statement-title" id="statement-title">
+                    <span class="statement-line">ENERGY</span>
+                    <span class="statement-line">MEETS</span>
+                    <span class="statement-line statement-line-accent">BLOCKCHAIN</span>
+                </h2>
+                <p class="statement-sub">Solar panels generate. Smart meters verify. Blockchain records. Tokens reward.
+                    The full cycle, automated.</p>
+            </div>
+        </section>
+
+        <!-- SECTION 6: BENTO BOX FEATURE GRID -->
+        <section class="section section-bento" id="section-bento">
+            <div class="bento-header" id="bento-header">
+                <h2 class="bento-title">Built for <span class="text-gradient">energy</span> innovation</h2>
+                <p class="bento-sub">Four layers of technology, one unified platform.</p>
+            </div>
+            <div class="bento-grid" id="bento-grid">
+
+                <!-- Top-Left: Physics Simulation -->
+                <div class="bento-card bento-card-emerald" id="bento-physics">
+                    <div class="bento-card-inner">
+                        <div class="bento-card-visual">
+                            <div class="physics-ui">
+                                <div class="sine-wave">
+                                    <svg viewBox="0 0 200 80" preserveAspectRatio="none">
+                                        <path class="sine-path"
+                                            d="M0,40 Q12.5,10 25,40 T50,40 T75,40 T100,40 T125,40 T150,40 T175,40 T200,40"
+                                            fill="none" stroke="#34d399" stroke-width="2.5" />
+                                        <line x1="0" y1="40" x2="200" y2="40" stroke="#334155" stroke-width="0.5"
+                                            stroke-dasharray="4,4" />
+                                    </svg>
+                                </div>
+                                <div class="physics-label">
+                                    <span class="physics-val">230V</span>
+                                    <span class="physics-hz">50Hz AC</span>
+                                </div>
+                            </div>
+                        </div>
+                        <h3 class="bento-card-title">Physics Engine</h3>
+                        <p class="bento-card-desc">Modelica-powered 230V AC grid simulation with variable load profiles
+                            and brownout injection.</p>
+                    </div>
+                </div>
+
+                <!-- Top-Right: Smart Meter / IoT -->
+                <div class="bento-card bento-card-teal" id="bento-iot">
+                    <div class="bento-card-inner">
+                        <div class="bento-card-visual">
+                            <div class="iot-ui">
+                                <div class="iot-meter">
+                                    <div class="iot-ring">
+                                        <svg viewBox="0 0 100 100">
+                                            <circle cx="50" cy="50" r="42" fill="none" stroke="#1e293b"
+                                                stroke-width="8" />
+                                            <circle class="iot-ring-fill" cx="50" cy="50" r="42" fill="none"
+                                                stroke="#2dd4bf" stroke-width="8" stroke-dasharray="198 264"
+                                                stroke-linecap="round" transform="rotate(-90 50 50)" />
+                                        </svg>
+                                        <span class="iot-pct">75%</span>
+                                    </div>
+                                </div>
+                                <div class="iot-label">Buffer: 7.5 / 10 kWh</div>
+                            </div>
+                        </div>
+                        <h3 class="bento-card-title">Smart Meter Oracle</h3>
+                        <p class="bento-card-desc">IoT bridge reads real-time RMS voltage and auto-reports energy to the
+                            blockchain at threshold.</p>
+                    </div>
+                </div>
+
+                <!-- Bottom-Left: Blockchain -->
+                <div class="bento-card bento-card-slate" id="bento-chain">
+                    <div class="bento-card-inner">
+                        <div class="bento-card-visual">
+                            <div class="chain-ui">
+                                <div class="chain-block-row">
+                                    <div class="chain-block-item">
+                                        <span class="chain-hash">#1025</span>
+                                        <span class="chain-tx-tag tag-mint">MINT</span>
+                                    </div>
+                                    <div class="chain-connector"></div>
+                                    <div class="chain-block-item">
+                                        <span class="chain-hash">#1026</span>
+                                        <span class="chain-tx-tag tag-trade">TRADE</span>
+                                    </div>
+                                    <div class="chain-connector"></div>
+                                    <div class="chain-block-item">
+                                        <span class="chain-hash">#1027</span>
+                                        <span class="chain-tx-tag tag-burn">BURN</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <h3 class="bento-card-title">Ethereum Ledger</h3>
+                        <p class="bento-card-desc">JouletToken (JLT) smart contract verifies energy generation and
+                            enables decentralized trading.</p>
+                    </div>
+                </div>
+
+                <!-- Bottom-Right: Trading -->
+                <div class="bento-card bento-card-amber" id="bento-trade">
+                    <div class="bento-card-inner">
+                        <div class="bento-card-visual">
+                            <div class="trade-ui">
+                                <div class="trade-pair">
+                                    <div class="trade-side">
+                                        <span class="trade-label">Sell</span>
+                                        <span class="trade-amount">10 JLT</span>
+                                    </div>
+                                    <div class="trade-arrow">⇄</div>
+                                    <div class="trade-side">
+                                        <span class="trade-label">Receive</span>
+                                        <span class="trade-amount trade-usd">$5.00</span>
+                                    </div>
+                                </div>
+                                <div class="trade-rate">
+                                    <span>1 JLT = Dynamic Price</span>
+                                    <span class="trade-difficulty">AMM Liquidity Pool</span>
+                                </div>
+                            </div>
+                        </div>
+                        <h3 class="bento-card-title">On-Chain DEX</h3>
+                        <p class="bento-card-desc">Full AMM liquidity pool with genesis initialization. Dynamic pricing.
+                            Buy/sell JLT with real on-chain ERC20 transfers.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 7: FINAL CTA -->
+        <section class="section section-cta" id="section-cta">
+            <!-- CTA background image -->
+            <div class="cta-bg-image">
+                <img src="/assets/digital-twin.png" alt="Digital Twin" />
+            </div>
+            <div class="cta-content" id="cta-content">
+                <h2 class="cta-title">Ready to<br /><span class="text-gradient">power the future</span>?</h2>
+                <p class="cta-sub">Join the decentralized energy revolution. Generate, trade, and consume clean energy —
+                    all verified on-chain.</p>
+                <div class="cta-buttons">
+                    <a href="http://localhost:5174" class="btn btn-primary btn-glow" id="cta-download"
+                        target="_blank">Launch
+                        Dashboard</a>
+                    <a href="https://github.com" class="btn btn-secondary btn-outline-glow" id="cta-learn"
+                        target="_blank">Read the
+                        Docs</a>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="site-footer">
+            <div class="footer-inner">
+                <div class="footer-brand">
+                    <img src="/assets/mascot.png" alt="Joulet" class="footer-logo-img" />
+                    <span class="footer-logo-text">Joulet</span>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-col">
+                        <h4>Platform</h4>
+                        <a href="http://localhost:5174" target="_blank">Dashboard</a>
+                        <a href="http://localhost:5174" target="_blank">Grid Monitor</a>
+                        <a href="http://localhost:5174" target="_blank">Energy Market</a>
+                        <a href="#section-cta">JLT Token</a>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Developers</h4>
+                        <a href="#">Documentation</a>
+                        <a href="#">Smart Contracts</a>
+                        <a href="#">API Reference</a>
+                        <a href="#">GitHub</a>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Technology</h4>
+                        <a href="#">Modelica Engine</a>
+                        <a href="#">IoT Bridge</a>
+                        <a href="#">Digital Twin</a>
+                        <a href="#">Energy Minting</a>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Project</h4>
+                        <a href="#">About Joulet</a>
+                        <a href="#">Architecture</a>
+                        <a href="#">License</a>
+                        <a href="#">Contact</a>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2026 Joulet Digital Twin Platform. All rights reserved.</p>
+                    <div class="footer-legal">
+                        <a href="#">Privacy</a>
+                        <a href="#">Terms</a>
+                        <a href="#">Security</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+    </main>
+
+    <script src="/main.js"></script>
+</body>
+
+</html>

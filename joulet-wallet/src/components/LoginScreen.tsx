@@ -1,78 +1,73 @@
 import React from 'react';
 import { useWalletStore } from '../store/walletStore';
 import { HARDHAT_PROFILES } from '../core/keyManager';
-import { Sun, HomeIcon, Building2, Zap, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const LoginScreen: React.FC = () => {
     const { login, isApiConnected } = useWalletStore();
 
     const getIcon = (id: number) => {
         switch (id) {
-            case 0: return <Sun className="text-amber-400" size={32} />;
-            case 1: return <HomeIcon className="text-joulet-green" size={32} />;
-            case 2: return <Building2 className="text-joulet-blue" size={32} />;
-            default: return <Zap className="text-white" size={32} />;
+            case 0: return <img src="/solar-icon.png" alt="Solar Station" className="w-14 h-14 object-contain" />;
+            case 1: return <img src="/home-icon.png" alt="Smart Home" className="w-14 h-14 object-contain" />;
+            case 2: return <img src="/building-icon.png" alt="Commercial Building" className="w-14 h-14 object-contain" />;
+            default: return <img src="/mascot.png" alt="Default" className="w-14 h-14 object-contain" />;
         }
     };
 
     const getAccent = (id: number) => {
         switch (id) {
-            case 0: return "from-amber-500/20 to-orange-500/5 group-hover:border-amber-500/50 shadow-[0_0_30px_rgba(251,191,36,0.1)] group-hover:shadow-[0_0_40px_rgba(251,191,36,0.3)]";
-            case 1: return "from-joulet-green/20 to-teal-500/5 group-hover:border-joulet-green/50 shadow-[0_0_30px_rgba(0,230,118,0.1)] group-hover:shadow-[0_0_40px_rgba(0,230,118,0.3)]";
-            case 2: return "from-joulet-blue/20 to-cyan-500/5 group-hover:border-joulet-blue/50 shadow-[0_0_30px_rgba(0,229,255,0.1)] group-hover:shadow-[0_0_40px_rgba(0,229,255,0.3)]";
+            case 0: return "hover:border-amber-500/30";
+            case 1: return "hover:border-joulet-green/30";
+            case 2: return "hover:border-joulet-blue/30";
             default: return "";
         }
     };
 
     return (
-        <div className="min-h-screen w-screen bg-[#05080E] flex flex-col items-center justify-center p-6 relative overflow-hidden">
-            {/* Background elements */}
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#05080E] to-black opacity-80" />
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:64px_64px] pointer-events-none" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-joulet-green/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="min-h-screen w-screen bg-[#0a0f1e] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+            {/* Subtle background glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-joulet-green/3 blur-[120px] rounded-full pointer-events-none" />
 
-            <div className="relative z-10 w-full max-w-5xl flex flex-col items-center">
+            <div className="relative z-10 w-full max-w-4xl flex flex-col items-center">
 
                 {/* Header */}
-                <div className="text-center mb-16 animate-in slide-in-from-top-10 fade-in duration-1000">
-                    <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-joulet-green to-teal-600 flex items-center justify-center shadow-[0_0_40px_rgba(0,230,118,0.4)] mb-8 border-[1px] border-white/20">
-                        <Zap className="text-white fill-white/20" size={40} />
-                    </div>
-                    <h1 className="text-5xl md:text-6xl font-black text-white tracking-tight mb-4 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                <div className="text-center mb-14">
+                    <img src="/mascot.png" alt="Joulet" className="w-16 h-16 mx-auto object-contain mb-6" />
+                    <h1 className="font-display text-4xl md:text-5xl font-black text-white tracking-tight mb-3">
                         Select Persona
                     </h1>
-                    <p className="text-slate-400 max-w-lg mx-auto leading-relaxed text-sm md:text-base">
-                        Choose an active profile to simulate transactions on the <span className="text-joulet-green font-bold">Joulet Network</span>. These accounts are deterministically fueled by your local Hardhat node.
+                    <p className="text-slate-400 max-w-md mx-auto leading-relaxed text-sm">
+                        Choose an active profile to simulate transactions on the <span className="text-joulet-green font-semibold">Joulet Network</span>.
                     </p>
                 </div>
 
                 {/* Profile Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 w-full">
-                    {HARDHAT_PROFILES.map((profile, i) => (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full">
+                    {HARDHAT_PROFILES.map((profile) => (
                         <div
                             key={profile.id}
                             onClick={() => login(profile.id)}
-                            className={`group bg-[#0B101E]/80 backdrop-blur-xl border border-white/10 rounded-[32px] p-8 cursor-pointer transition-all duration-500 hover:-translate-y-2 bg-gradient-to-br ${getAccent(profile.id)} animate-in fade-in slide-in-from-bottom-${4 + i * 2}`}
-                            style={{ animationDelay: `${i * 150}ms` }}
+                            className={`group bg-[#0f172a] border border-white/8 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:bg-[#162032] ${getAccent(profile.id)}`}
                         >
-                            <div className="flex justify-between items-start mb-12">
-                                <div className="p-4 rounded-2xl bg-black/40 border border-white/5 shadow-inner">
+                            <div className="flex justify-between items-start mb-8">
+                                <div className="p-3 rounded-xl bg-white/5 border border-white/5">
                                     {getIcon(profile.id)}
                                 </div>
-                                <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center bg-black/20 group-hover:bg-white/10 transition-colors">
-                                    <ArrowRight size={14} className="text-white/50 group-hover:text-white transition-colors" />
+                                <div className="w-7 h-7 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white/5 transition-colors">
+                                    <ArrowRight size={12} className="text-white/40 group-hover:text-white/80 transition-colors" />
                                 </div>
                             </div>
 
                             <div>
-                                <h3 className="text-2xl font-black text-white mb-2 tracking-wide group-hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.3)] transition-all">
+                                <h3 className="font-display text-xl font-black text-white mb-1">
                                     {profile.name}
                                 </h3>
-                                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-6">
+                                <p className="text-xs text-slate-400 font-medium uppercase tracking-wider mb-5">
                                     {profile.role}
                                 </p>
 
-                                <div className="text-[10px] font-mono text-slate-500 bg-black/40 px-3 py-2 rounded-lg border border-white/5 truncate group-hover:text-slate-300 transition-colors">
+                                <div className="text-[10px] font-mono text-slate-500 bg-black/30 px-3 py-2 rounded-lg border border-white/5 truncate">
                                     {`Key: ...${profile.privateKey.substring(60)}`}
                                 </div>
                             </div>
@@ -80,14 +75,14 @@ const LoginScreen: React.FC = () => {
                     ))}
                 </div>
 
-                {/* Connection Status Footer */}
-                <div className="mt-16 flex items-center space-x-3 bg-black/40 backdrop-blur-md px-6 py-3 rounded-full border border-white/5 animate-in fade-in duration-1000 delay-500">
+                {/* Connection Status */}
+                <div className="mt-12 flex items-center space-x-2 bg-[#0f172a] px-5 py-2.5 rounded-full border border-white/5">
                     <div className="relative flex h-2 w-2">
-                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isApiConnected ? 'bg-joulet-green' : 'bg-red-500'} opacity-75`}></span>
-                        <span className={`relative inline-flex rounded-full h-2 w-2 ${isApiConnected ? 'bg-joulet-green shadow-[0_0_8px_#00E676]' : 'bg-red-500 shadow-[0_0_8px_#EF4444]'}`}></span>
+                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${isApiConnected ? 'bg-joulet-green' : 'bg-joulet-red'} opacity-75`}></span>
+                        <span className={`relative inline-flex rounded-full h-2 w-2 ${isApiConnected ? 'bg-joulet-green' : 'bg-joulet-red'}`}></span>
                     </div>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        {isApiConnected ? 'API Bridge Online • Ready for Interoperability' : 'API Bridge Disconnected • Run ./start.sh'}
+                    <span className="text-[10px] font-medium text-slate-400 tracking-wider">
+                        {isApiConnected ? 'API Bridge Online' : 'API Bridge Disconnected — Run ./start.sh'}
                     </span>
                 </div>
             </div>

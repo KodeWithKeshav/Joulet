@@ -121,51 +121,93 @@ def run_bridge():
             time.sleep(1)
 
 def mock_loop():
-    """Fallback if OMPython is missing"""
+    """Fallback physics-based RLC circuit simulation when OMPython is missing.
+    Uses same parameters as GridSystem.mo for consistency."""
     import math
     import random
     
-    print("Starting Mock Simulation Loop (RMS Voltage Mode)...")
+    print("Starting RLC Circuit Physics Simulation (no OpenModelica)...")
+    
+    # Circuit parameters matching GridSystem.mo
+    V_SOURCE_PEAK = 325.27   # 230V RMS = 325.27V peak (matches gridSource.V)
+    BASE_FREQ = 50.0         # Hz (matches gridSource.freqHz)
+    L_GRID = 0.01            # Grid inductance (H)
+    C_GRID = 0.001          # Grid capacitance (F) — tuned so X_L ≈ X_C at 50Hz
+    R_BASE = 50.0            # Base load resistance (matches loadProfile.offset)
+    R_AMP = 50.0             # Load amplitude (matches loadProfile.amplitude)
+    
+    sim_hour = 0.0  # Simulated hour counter
+    
     while True:
-        # Simulate RMS Voltage (not instantaneous)
-        base_v = 230.0 
+        # Trapezoidal load profile (matching GridSystem.mo Trapezoid block)
+        # Rising 6am-7am, plateau 7am-5pm, falling 5pm-6pm
+        hour_of_day = sim_hour % 24
+        if 6 <= hour_of_day < 7:
+            load_factor = (hour_of_day - 6)  # Ramp 0→1
+        elif 7 <= hour_of_day < 17:
+            load_factor = 1.0  # Full load plateau
+        elif 17 <= hour_of_day < 18:
+            load_factor = (18 - hour_of_day)  # Ramp 1→0
+        else:
+            load_factor = 0.2  # Nighttime base
         
-        # Add normal fluctuation
-        noise = random.normalvariate(0, 2) # +/- few volts
+        # Dynamic resistance (lower R = heavier load = more current draw)
+        R_load = R_BASE + R_AMP * (1.0 - load_factor)
+        R_load = max(10.0, R_load)
         
-        # Add a brownout event occasionally (10% chance)
-        if random.random() < 0.1:
-            print("SIMULATING BROWNOUT...")
-            base_v = 200.0 # Drop below 210
-            
-        v_rms = base_v + noise
+        # Angular frequency
+        omega = 2 * math.pi * BASE_FREQ
         
-        # Power P = V*I (assuming resistive load for simplicity impact)
-        # Load resistance fluctuates
-        r = 50 + 10 * math.sin(time.time()/5)
-        i_rms = v_rms / r
-        p_real = v_rms * i_rms
+        # RLC impedance: Z = sqrt(R² + (ωL - 1/(ωC))²)
+        X_L = omega * L_GRID
+        X_C = 1.0 / (omega * C_GRID)
+        Z = math.sqrt(R_load**2 + (X_L - X_C)**2)
         
-        # Calculate Energy (kWh)
-        # Power (W) * Time (h) / 1000 = kWh
-        # We step every 1.0s
-        # DEMO SCALING: 1 Real Sec = 1 Sim Hour (x3600 speedup)
-        step_hours = 1.0 
+        # V_load_rms = (R/Z) * V_source_rms  (voltage divider)
+        V_source_rms = V_SOURCE_PEAK / math.sqrt(2)
+        V_load_rms = (R_load / Z) * V_source_rms
+        
+        # Add Gaussian grid noise (σ = 2V, matching GridSystem.mo NormalNoise sigma=20 scaled to RMS)
+        noise = random.gauss(0, 2.0)
+        V_load_rms += noise
+        
+        # Rare brownout event (~5% chance): sudden load surge
+        if random.random() < 0.05:
+            print("[RLC] SIMULATING BROWNOUT: Load Surge...")
+            surge_R = 3.0  # Very low resistance = massive current draw
+            surge_Z = math.sqrt(surge_R**2 + (X_L - X_C)**2)
+            V_load_rms = (surge_R / surge_Z) * V_source_rms
+            V_load_rms += random.gauss(0, 3.0)
+        
+        # Current: I = V / R
+        i_rms = V_load_rms / R_load
+        
+        # Real power with power factor: P = V * I * cos(φ), cos(φ) = R/Z
+        power_factor = R_load / Z
+        p_real = V_load_rms * i_rms * power_factor
+        
+        # Energy: 1 real second = 1 sim hour demo speedup
+        step_hours = 1.0
         kwh_generated = (p_real / 1000.0) * step_hours
+        
+        # Frequency droop from loading
+        freq_droop = -0.1 * max(0, (1 - V_load_rms / 230.0)) * 10
+        grid_freq = BASE_FREQ + freq_droop + random.gauss(0, 0.02)
         
         # 1. Send Status for Visualization
         status_payload = {
-            "voltage": round(v_rms, 2),
+            "voltage": round(V_load_rms, 2),
             "current": round(i_rms, 2),
             "power": round(p_real, 2),
+            "frequency": round(grid_freq, 3),
             "timestamp": time.time(),
-            "is_mock": True
+            "model": "RLC_physics"
         }
         
         # 2. Send Energy for Minting (Production)
         energy_payload = {
             "kwh": kwh_generated,
-            "device_id": "modelica_sim_1",
+            "device_id": "rlc_grid_sim",
             "timestamp": datetime.datetime.now().isoformat()
         }
         
@@ -174,14 +216,14 @@ def mock_loop():
             requests.post(API_URL, json=status_payload, timeout=0.5)
             
             # Send Production
-            # We use the existing endpoint in api_bridge.py
             requests.post("http://localhost:5001/api/energy/reading", json=energy_payload, timeout=0.5)
             
-            print(f"[Mock] Sent: {v_rms:.1f}V | {p_real:.1f}W | +{kwh_generated:.6f} kWh")
+            print(f"[RLC] {V_load_rms:.1f}V | {i_rms:.2f}A | {p_real:.0f}W | {grid_freq:.2f}Hz | +{kwh_generated:.4f}kWh")
         except Exception as e:
              print(f"Connection Error: {e}")
-             
-        time.sleep(1.0) # Update every second
+        
+        sim_hour += 1.0  # Each second = 1 simulated hour
+        time.sleep(1.0)
 
 if __name__ == "__main__":
     run_bridge()
