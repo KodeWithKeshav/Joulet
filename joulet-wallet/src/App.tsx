@@ -31,7 +31,7 @@ function App() {
     fetchLiveStatus(); // Initial fetch
     const fetchInterval = setInterval(() => {
       fetchLiveStatus();
-    }, 2500); // Poll API and Blockchain every 2.5s
+    }, 1500); // Poll API and Blockchain every 1.5s
 
     return () => clearInterval(fetchInterval);
   }, [fetchLiveStatus]);

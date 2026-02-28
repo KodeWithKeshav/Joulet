@@ -1,10 +1,48 @@
 import React from 'react';
 import { useWalletStore } from '../store/walletStore';
-import { Cpu, Signal, Lock, Plus, Link2, Zap } from 'lucide-react';
+import { Cpu, Signal, Lock, Plus, Link2, Zap, RefreshCw, Play, Hand } from 'lucide-react';
 
 const DeviceView: React.FC = () => {
-    const { deviceKeys, isApiConnected, fetchLiveStatus } = useWalletStore();
+    const { deviceKeys, isApiConnected, fetchLiveStatus, updateAssets } = useWalletStore();
     const [isSimulating, setIsSimulating] = React.useState(false);
+    const [simMode, setSimMode] = React.useState<'manual' | 'auto'>('manual');
+    const [isResetting, setIsResetting] = React.useState(false);
+    const [modeLoading, setModeLoading] = React.useState(false);
+
+    // Fetch current mode on mount
+    React.useEffect(() => {
+        fetch('http://localhost:5004/api/simulator/mode')
+            .then(r => r.json())
+            .then(d => setSimMode(d.mode === 'auto' ? 'auto' : 'manual'))
+            .catch(() => {});
+    }, [isApiConnected]);
+
+    const toggleMode = async (target: 'manual' | 'auto') => {
+        if (modeLoading || target === simMode) return;
+        setModeLoading(true);
+        try {
+            const res = await fetch('http://localhost:5004/api/simulator/mode', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: target }),
+            });
+            const d = await res.json();
+            setSimMode(d.mode === 'auto' ? 'auto' : 'manual');
+        } catch {}
+        setModeLoading(false);
+    };
+
+    const resetData = async () => {
+        if (isResetting) return;
+        setIsResetting(true);
+        try {
+            await fetch('http://localhost:5004/api/energy/reset', { method: 'POST' });
+            // Immediately zero the UI — blockchain read on next poll will confirm 0
+            updateAssets({ jltBalance: 0, totalKwhGenerated: 0, verifiedBatches: 0, pendingEnergy: 0, incidentLog: [], difficultyHistory: [] });
+            await fetchLiveStatus();
+        } catch {}
+        setIsResetting(false);
+    };
 
     if (!deviceKeys) {
         return (
@@ -95,7 +133,40 @@ const DeviceView: React.FC = () => {
                             <input type="text" readOnly value="Local DPoS (Joulet Simulation)" className="bg-black/30 border border-white/8 rounded-lg p-2.5 text-xs font-mono text-slate-400 w-full focus:outline-none" />
                         </div>
 
-                        <div className="mt-4 pt-4 border-t border-white/5">
+                        <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
+                            {/* Mode toggle */}
+                            <div>
+                                <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-2 font-medium">Trigger Mode</p>
+                                <div className="flex rounded-lg overflow-hidden border border-white/8">
+                                    <button
+                                        onClick={() => toggleMode('manual')}
+                                        disabled={!isApiConnected || modeLoading}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-[11px] font-bold tracking-wider transition-all ${
+                                            simMode === 'manual'
+                                                ? 'bg-joulet-indigo text-white'
+                                                : 'bg-transparent text-slate-400 hover:text-white'
+                                        } disabled:opacity-40`}
+                                    >
+                                        <Hand size={11} /> Manual
+                                    </button>
+                                    <button
+                                        onClick={() => toggleMode('auto')}
+                                        disabled={!isApiConnected || modeLoading}
+                                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-[11px] font-bold tracking-wider transition-all ${
+                                            simMode === 'auto'
+                                                ? 'bg-joulet-green text-[#0f172a]'
+                                                : 'bg-transparent text-slate-400 hover:text-white'
+                                        } disabled:opacity-40`}
+                                    >
+                                        <Play size={11} /> Auto
+                                    </button>
+                                </div>
+                                <p className="text-[9px] text-slate-500 mt-1.5">
+                                    {simMode === 'auto' ? '⚡ Auto-generating readings every 5s' : '🖐 Only manual 10kWh triggers are sent'}
+                                </p>
+                            </div>
+
+                            {/* Simulate button */}
                             <button
                                 onClick={async () => {
                                     if (isSimulating) return;
@@ -114,7 +185,17 @@ const DeviceView: React.FC = () => {
                                 <Zap size={14} />
                                 {isSimulating ? "Transmitting..." : "Simulate 10kWh Production"}
                             </button>
-                            <p className="text-[9px] text-slate-500 mt-2 text-center">Sends verified telemetry to Blockchain to yield JLT.</p>
+
+                            {/* Reset button */}
+                            <button
+                                onClick={resetData}
+                                disabled={!isApiConnected || isResetting}
+                                className="w-full bg-joulet-red/8 hover:bg-joulet-red/18 border border-joulet-red/25 text-joulet-red text-xs font-bold py-2.5 rounded-lg flex justify-center items-center gap-2 transition-colors disabled:opacity-50"
+                            >
+                                <RefreshCw size={13} className={isResetting ? 'animate-spin' : ''} />
+                                {isResetting ? 'Resetting...' : 'Reset All Data'}
+                            </button>
+                            <p className="text-[9px] text-slate-500 text-center">Sends verified telemetry to Blockchain to yield JLT.</p>
                         </div>
                     </div>
                 </div>

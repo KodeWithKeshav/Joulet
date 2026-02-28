@@ -237,11 +237,26 @@ export const useWalletStore = create<WalletState>()(
                     const liveDifficulty = data.metrics?.reporting_threshold || state.difficultyThreshold;
                     let newDiffHistory = [...state.difficultyHistory];
 
-                    // Only push if changed to avoid massive array of duplicates
-                    if (newDiffHistory.length === 0 || liveDifficulty !== newDiffHistory[newDiffHistory.length - 1]) {
+                    // Try to use consensus engine's real DDA history (has actual adjustment events)
+                    let usedConsensusHistory = false;
+                    try {
+                        const consensusRes = await fetch('http://localhost:5010/api/consensus/status');
+                        if (consensusRes.ok) {
+                            const consensusData = await consensusRes.json();
+                            if (Array.isArray(consensusData.difficulty_history) && consensusData.difficulty_history.length > 1) {
+                                newDiffHistory = consensusData.difficulty_history.slice(-15);
+                                usedConsensusHistory = true;
+                            }
+                        }
+                    } catch {
+                        // Consensus engine unavailable; fall through to manual push
+                    }
+
+                    if (!usedConsensusHistory) {
+                        // Always push current value so the DDA chart gets time-series data
+                        // (a flat line at stable difficulty is more useful than "Collecting DDA trend data...")
                         newDiffHistory.push(liveDifficulty);
-                        // Keep last 15 points
-                        if (newDiffHistory.length > 15) newDiffHistory.shift();
+                        if (newDiffHistory.length > 15) newDiffHistory = newDiffHistory.slice(-15);
                     }
 
                     // Calculate dynamic JLT Price based on difficulty metrics. 

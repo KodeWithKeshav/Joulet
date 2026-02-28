@@ -127,6 +127,20 @@ contract JouletToken is ERC20, Ownable {
     function redeemEnergy(uint256 amount) public {
         _burn(msg.sender, amount);
     }
+
+    /**
+     * @notice Demo reset — burns producer's minted JLT and zeroes their on-chain state.
+     *         Only callable by owner (deployer) for hackathon demo purposes.
+     */
+    function demoReset(address producer) public onlyOwner {
+        uint256 bal = balanceOf(producer);
+        if (bal > 0) {
+            _burn(producer, bal);
+        }
+        providerAccumulatedKwhForTokens[producer] = 0;
+        providerAccumulatedKwh[producer] = 0;
+        currentBatchId = 0;
+    }
     
     /**
      * @notice Simplified ZK-SNARK proof verifier for demo purposes.

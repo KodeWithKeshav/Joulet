@@ -57,6 +57,15 @@ class SolarOracle:
                 "type": "function"
             },
             {
+                "inputs": [
+                    {"internalType": "address", "name": "producer", "type": "address"}
+                ],
+                "name": "demoReset",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
                 "anonymous": False,
                 "inputs": [
                     {"indexed": True, "internalType": "uint256", "name": "batchId", "type": "uint256"},
@@ -104,6 +113,25 @@ class SolarOracle:
             # Nighttime - no solar production
             return 0
     
+    def demo_reset(self, producer_address):
+        """Burns producer JLT and resets on-chain energy state for demo purposes."""
+        try:
+            producer = Web3.to_checksum_address(producer_address)
+            tx = self.contract.functions.demoReset(producer).build_transaction({
+                'from': self.oracle_address,
+                'nonce': self.w3.eth.get_transaction_count(self.oracle_address),
+                'gas': 200000,
+                'gasPrice': self.w3.eth.gas_price,
+            })
+            signed = self.w3.eth.account.sign_transaction(tx, self.oracle_account.key)
+            tx_hash = self.w3.eth.send_raw_transaction(signed.raw_transaction)
+            receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=30)
+            print(f"[DEMO-RESET] On-chain reset done. tx={tx_hash.hex()} status={receipt.status}")
+            return receipt.status == 1
+        except Exception as e:
+            print(f"[DEMO-RESET] Error: {e}")
+            return False
+
     def report_energy(self, producer_address, kwh_amount, merkle_root=None):
         """
         Report energy production to the blockchain
@@ -145,22 +173,38 @@ class SolarOracle:
                 transaction,
                 private_key=self.oracle_account.key
             )
+
+            # ── TERMINAL PROOF: ECDSA Signature ─────────────────────────────
+            raw_tx  = getattr(signed_txn, 'raw_transaction', getattr(signed_txn, 'rawTransaction', None))
+            tx_hash_pre = Web3.keccak(raw_tx)
+            print()
+            print("┌────────────────────────[♥ ORACLE SIGNING]────────────────────────")
+            print(f"│ ⚡ Energy Report     : {kwh_amount:.4f} kWh  (on-chain int: {kwh_int})")
+            print(f"│ 🌳 Producer Wallet   : {producer_address}")
+            print(f"│ 🔏 Merkle Root        : {merkle_root}")
+            print(f"│ 🔢 Nonce              : {nonce}")
+            print(f"│ ⛽ Gas Price          : {self.w3.eth.gas_price} wei")
+            print(f"│ 🔐 ECDSA signer       : {self.oracle_address}")
+            print(f"│ 📝 Tx raw hash (kek)  : 0x{tx_hash_pre.hex()}")
+            if hasattr(signed_txn, 'v'):
+                print(f"│ 📍 Signature (v,r,s)  : v={getattr(signed_txn,'v','-')}  r=0x{getattr(signed_txn,'r',0):064x}  s=0x{getattr(signed_txn,'s',0):064x}")
+            print("└─────────────────────────────────────────────────────────────")
+            print()
             
             # Send transaction
-            raw_tx = getattr(signed_txn, 'raw_transaction', getattr(signed_txn, 'rawTransaction', None))
             tx_hash = self.w3.eth.send_raw_transaction(raw_tx)
             
-            print(f"⚡ Energy report submitted: {kwh_amount:.2f} kWh (Root: {merkle_root})")
-            print(f"   Transaction hash: {tx_hash.hex()}")
+            print(f"✅ Tx broadcast      : {tx_hash.hex()}")
             
             # Wait for confirmation
             receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
             
             if receipt['status'] == 1:
-                print(f"✓ Transaction confirmed in block {receipt['blockNumber']}")
+                print(f"✅ CONFIRMED block #{receipt['blockNumber']:,}  gasUsed={receipt['gasUsed']:,}  🌱 JLT minted!")
+                print()
                 return True
             else:
-                print(f"✗ Transaction failed")
+                print(f"❌ Transaction REVERTED")
                 return False
                 
         except Exception as e:

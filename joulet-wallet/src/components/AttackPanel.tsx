@@ -75,7 +75,7 @@ export default function AttackPanel() {
                 break;
             case 'NIGHT':
                 const nightTime = new Date(now);
-                nightTime.setHours(2, 0, 0); // 2am
+                nightTime.setUTCHours(2, 0, 0, 0); // 2am UTC — outside 06-18 window
                 setCustomParams({
                     deviceId: 'solar_node_gamma',
                     voltage: 230.1,
@@ -113,96 +113,103 @@ export default function AttackPanel() {
 
     const executeAttack = async () => {
         if (!pendingAttackType) return;
-        
+
         setShowCustomModal(false);
         setIsAttacking(true);
         setStatusText(`Injecting ${pendingAttackType.type}...`);
 
-        addLog('warn', `>>> INITIATING ATTACK VECTOR: [${pendingAttackType.type}]`);
-        addLog('info', `Deploying payload: ${pendingAttackType.description}`);
+        const payload = {
+            Device_ID: customParams.deviceId,
+            Voltage: customParams.voltage,
+            Current: customParams.current,
+            Power_kW: customParams.powerKw,
+            Timestamp: customParams.timestamp,
+        };
+
+        addLog('warn', `>>> INITIATING ATTACK: [${pendingAttackType.type}]`);
+        addLog('info', `Payload → ${JSON.stringify(payload)}`);
+        addLog('info', `Signature → ${customParams.useInvalidSignature ? '0x' + '0'.repeat(16) + '... (ZEROED)' : 'device key (auto-signed by oracle)'}`);
+        addLog('warn', `Transmitting to 127.0.0.1:5001/api/oracle/attack-demo ...`);
 
         try {
-            // Build payload from custom parameters
-            const payload = {
-                "Device_ID": customParams.deviceId,
-                "Voltage": customParams.voltage,
-                "Current": customParams.current,
-                "Power_kW": customParams.powerKw,
-                "Timestamp": customParams.timestamp
-            };
+            const res = await fetch('http://127.0.0.1:5001/api/oracle/attack-demo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    attack_type: pendingAttackType.type,
+                    params: {
+                        device_id: customParams.deviceId,
+                        voltage: customParams.voltage,
+                        current: customParams.current,
+                        power_kw: customParams.powerKw,
+                        timestamp: customParams.timestamp,
+                        use_invalid_signature: customParams.useInvalidSignature,
+                    },
+                }),
+            });
 
-            // Generate or invalidate signature based on user choice
-            let signature = "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a"; // valid-ish format
-            if (customParams.useInvalidSignature) {
-                signature = "0x" + "0".repeat(128);
+            const data = await res.json();
+
+            if (!res.ok || data.error) {
+                addLog('error', `Oracle error: ${data.error || res.statusText}`);
+                setStatusText('Oracle Unreachable');
+                setIsAttacking(false);
+                return;
             }
 
-            // Simulate typing the raw payload into the terminal
-            setTimeout(() => addLog('info', `Crafting malicious JSON payload...`), 400);
-            setTimeout(() => {
-                addLog('info', `Parameters:`);
-                addLog('raw', JSON.stringify({ payload, signature: signature.substring(0, 15) + '...' }, null, 2));
-            }, 800);
-            setTimeout(() => addLog('warn', `Transmitting payload directly to 127.0.0.1:5001/api/oracle/submit...`), 1400);
+            const trail: any[] = data.audit_trail || [];
+            const passed: boolean = data.passed;
 
-            // Execute actual request after visual delay
-            setTimeout(async () => {
-                try {
-                    const response = await fetch("http://127.0.0.1:5001/api/oracle/submit", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ payload, signature })
-                    });
+            addLog('info', `─────────────────────────────────────────`);
+            addLog('info', `ORACLE AUDIT TRAIL — ${trail.length} validation layers`);
+            addLog('info', `─────────────────────────────────────────`);
 
-                    const data = await response.json();
-
-                    if (response.status === 406 || response.status === 400 || response.status === 500) {
-                        setStatusText(`Blocked By Oracle`);
-                        addLog('error', `[ORACLE NODE RESPONSE] ${response.status} ${response.statusText}`);
-                        addLog('error', `✖ BLOCKED: ${data.reason || data.error || 'Request Rejected'}`);
-                        addLog('info', `Attack successfully mitigated by Oracle Defense Network.`);
-                        addLog('info', `Defense Layer: ${identifyDefenseLayer(data.reason || data.error || '')}`);
-                        addIncident(`ATTACK BLOCKED: ${pendingAttackType.description}`);
-                    } else {
-                        setStatusText("Attack Successful (Warning!)");
-                        addLog('success', `[ORACLE NODE RESPONSE] 200 OK`);
-                        addLog('success', `✔ CRITICAL: Payload accepted! Attack bypassed filters!`);
-                        addIncident(`CRITICAL: Attack bypassed filters!`);
+            trail.forEach((layer: any, idx: number) => {
+                setTimeout(() => {
+                    const icon = layer.status === 'PASS' ? '✅' : layer.status === 'FAIL' ? '❌' : '⬜';
+                    const typeKey = layer.status === 'PASS' ? 'layer_pass' : layer.status === 'FAIL' ? 'layer_fail' : 'layer_skip';
+                    addLog(typeKey as any, `${icon} Layer ${layer.layer_id}: ${layer.name} → ${layer.status}`);
+                    addLog('raw_detail' as any, `   ${layer.detail}`);
+                    if (layer.status === 'FAIL') {
+                        addLog('info', `   🛡  Defense: ${describeDefense(layer.layer_id)}`);
                     }
-                } catch (e) {
-                    setStatusText("Attack Failed: Target Offline");
-                    addLog('error', `✖ CONNECTION REFUSED: Oracle Node offline or unreachable.`);
+                }, idx * 450);
+            });
+
+            const totalDelay = trail.length * 450 + 200;
+            setTimeout(() => {
+                addLog('info', `─────────────────────────────────────────`);
+                if (passed) {
+                    addLog('success', `⚠  ATTACK PASSED ALL LAYERS — payload accepted`);
+                    setStatusText('⚠ Attack Bypassed!');
+                    addIncident(`CRITICAL: ${pendingAttackType.type} bypassed oracle filters`);
+                } else {
+                    addLog('error', `✖  ATTACK BLOCKED — failed at Layer ${data.failed_at}: ${data.reason}`);
+                    addLog('success', `✔  Oracle Defense Network: INTEGRITY MAINTAINED`);
+                    setStatusText('Attack Blocked ✓');
+                    addIncident(`BLOCKED: ${pendingAttackType.type} — ${data.reason}`);
                 }
-            }, 2000);
+                setIsAttacking(false);
+            }, totalDelay);
 
         } catch (e) {
-            setStatusText("Attack Failed: Target Offline");
-            addLog('error', `✖ CONNECTION REFUSED: Target Offline`);
-        }
-
-        setTimeout(() => {
+            addLog('error', `✖ CONNECTION REFUSED — is oracle_node.py running on port 5001?`);
+            setStatusText('Oracle Offline');
             setIsAttacking(false);
-            setStatusText(prev => prev.includes("Injecting") ? "System Normal" : prev);
-        }, 4500);
+        }
     };
 
-    const identifyDefenseLayer = (reason: string): string => {
-        if (reason.includes('signature') || reason.includes('Signature')) {
-            return 'Layer 1: ECDSA Signature Verification';
-        } else if (reason.includes('Capacity') || reason.includes('capacity')) {
-            return 'Layer 2: Physical Capacity Limit (5kW)';
-        } else if (reason.includes('Nighttime') || reason.includes('daylight')) {
-            return 'Layer 3: Daylight Hours Validation';
-        } else if (reason.includes('Spike') || reason.includes('spike')) {
-            return 'Layer 4: Anomaly Detection (Spike Protection)';
-        } else if (reason.includes('Weather') || reason.includes('weather')) {
-            return 'Layer 5: Weather Correlation Check';
-        } else if (reason.includes('Physics') || reason.includes('V*I')) {
-            return 'Bonus Layer: Physics Validation (V×I=P)';
-        } else if (reason.includes('Replay') || reason.includes('Timestamp')) {
-            return 'Layer 6: Replay Attack Protection';
-        }
-        return 'Multi-Layer Defense System';
+    const describeDefense = (layerId: number): string => {
+        const map: Record<number, string> = {
+            0: 'Device Registry — only whitelisted devices accepted',
+            1: 'secp256k1 ecrecover — ECDSA cryptographic signature verification',
+            2: 'Physics Integrity — V × I / 1000 must equal reported Power_kW (±0.1 kW)',
+            3: 'Capacity Limit — max 5 kW per reading enforced',
+            4: 'Daylight Window — solar generation only valid 06:00–18:00 UTC',
+            5: 'Replay-Attack Freshness — timestamp must be within 300s sliding window',
+            6: 'Anomaly / Spike Detection — ramp rate > 3 kW triggers alert',
+        };
+        return map[layerId] ?? 'Multi-Layer Oracle Defense';
     };
 
     return (
@@ -237,24 +244,28 @@ export default function AttackPanel() {
                     <AttackButton
                         icon={<AlertOctagon size={16} />}
                         label="Spoof ECDSA Signature"
+                        sublabel="Fails: Layer 1 — secp256k1 ecrecover"
                         onClick={() => openCustomModal('FORGERY', 'Invalid ECDSA Cryptography')}
                         disabled={isAttacking}
                     />
                     <AttackButton
                         icon={<CloudLightning size={16} />}
                         label="Replay Night Generation"
+                        sublabel="Fails: Layer 4 — Daylight Window (UTC 02:00)"
                         onClick={() => openCustomModal('NIGHT', 'Solar production outside daylight hours')}
                         disabled={isAttacking}
                     />
                     <AttackButton
                         icon={<ZapOff size={16} />}
                         label="Induce Capacity Spike"
+                        sublabel="Fails: Layer 3 — Capacity Limit > 5 kW"
                         onClick={() => openCustomModal('SPIKE', 'Sudden +3kW anomaly / Over-capacity')}
                         disabled={isAttacking}
                     />
                     <AttackButton
                         icon={<Skull size={16} />}
                         label="Inject Physics Forgery"
+                        sublabel="Fails: Layer 2 — V × I ≠ Power_kW"
                         onClick={() => openCustomModal('PHYSICS', 'V * I != Power Math violation')}
                         disabled={isAttacking}
                     />
@@ -289,11 +300,19 @@ export default function AttackPanel() {
                 >
                     {logs.map((log, i) => (
                         <div key={i} className="mb-1.5 break-all">
-                            <span className="text-slate-500 mr-3">[{log.timestamp}]</span>
+                            {log.type !== 'raw_detail' && (
+                                <span className="text-slate-500 mr-3">[{log.timestamp}]</span>
+                            )}
                             {log.type === 'info' && <span className="text-blue-400">{log.text}</span>}
-                            {log.type === 'warn' && <span className="text-yellow-400">{log.text}</span>}
-                            {log.type === 'error' && <span className="text-red-500 font-semibold">{log.text}</span>}
-                            {log.type === 'success' && <span className="text-green-500">{log.text}</span>}
+                            {log.type === 'warn' && <span className="text-yellow-300 font-semibold">{log.text}</span>}
+                            {log.type === 'error' && <span className="text-red-500 font-bold">{log.text}</span>}
+                            {log.type === 'success' && <span className="text-emerald-400 font-semibold">{log.text}</span>}
+                            {(log.type as string) === 'layer_pass' && <span className="text-emerald-400">{log.text}</span>}
+                            {(log.type as string) === 'layer_fail' && <span className="text-red-400 font-bold">{log.text}</span>}
+                            {(log.type as string) === 'layer_skip' && <span className="text-slate-500">{log.text}</span>}
+                            {(log.type as string) === 'raw_detail' && (
+                                <span className="text-slate-400 text-[10px] pl-4 italic">{log.text}</span>
+                            )}
                             {log.type === 'raw' && (
                                 <pre className="text-purple-400 mt-1 mb-2 bg-[#0a0f1e] p-2 rounded border border-purple-500/20 whitespace-pre-wrap">
                                     {log.text}
@@ -319,10 +338,7 @@ export default function AttackPanel() {
                                     <p className="text-xs text-white/50 mt-1">{pendingAttackType?.description}</p>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => setShowCustomModal(false)}
-                                className="p-2 rounded-full hover:bg-white/10 transition-colors"
-                            >
+                            <button onClick={() => setShowCustomModal(false)} className="p-2 rounded-full hover:bg-white/10 transition-colors">
                                 <X size={18} className="text-slate-400" />
                             </button>
                         </div>
@@ -330,95 +346,68 @@ export default function AttackPanel() {
                         <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
                             <div>
                                 <label className="block text-sm font-medium text-white/70 mb-2">Device ID</label>
-                                <input
-                                    type="text"
-                                    value={customParams.deviceId}
+                                <input type="text" value={customParams.deviceId}
                                     onChange={(e) => setCustomParams({...customParams, deviceId: e.target.value})}
                                     className="w-full bg-[#0a0f1e] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-joulet-indigo"
-                                    placeholder="solar_node_gamma"
-                                />
-                                <p className="text-xs text-white/40 mt-1">Identifier of the energy meter device</p>
+                                    placeholder="solar_node_gamma" />
+                                <p className="text-xs text-white/40 mt-1">Must match a registered device in oracle registry</p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-medium text-white/70 mb-2">Voltage (V)</label>
-                                    <input
-                                        type="number"
-                                        step="0.1"
-                                        value={customParams.voltage}
+                                    <input type="number" step="0.1" value={customParams.voltage}
                                         onChange={(e) => setCustomParams({...customParams, voltage: parseFloat(e.target.value)})}
-                                        className="w-full bg-[#0a0f1e] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-joulet-indigo"
-                                    />
+                                        className="w-full bg-[#0a0f1e] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-joulet-indigo" />
                                 </div>
-                                
                                 <div>
                                     <label className="block text-sm font-medium text-white/70 mb-2">Current (A)</label>
-                                    <input
-                                        type="number"
-                                        step="0.1"
-                                        value={customParams.current}
+                                    <input type="number" step="0.1" value={customParams.current}
                                         onChange={(e) => setCustomParams({...customParams, current: parseFloat(e.target.value)})}
-                                        className="w-full bg-[#0a0f1e] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-joulet-indigo"
-                                    />
+                                        className="w-full bg-[#0a0f1e] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-joulet-indigo" />
                                 </div>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-white/70 mb-2">Power (kW)</label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={customParams.powerKw}
+                                <input type="number" step="0.01" value={customParams.powerKw}
                                     onChange={(e) => setCustomParams({...customParams, powerKw: parseFloat(e.target.value)})}
-                                    className="w-full bg-[#0a0f1e] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-joulet-indigo"
-                                />
+                                    className="w-full bg-[#0a0f1e] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-joulet-indigo" />
                                 <p className="text-xs text-white/40 mt-1">
-                                    Physics check: Should equal (V × A) / 1000 = {((customParams.voltage * customParams.current) / 1000).toFixed(2)} kW
+                                    Physics law: (V × A) / 1000 = {((customParams.voltage * customParams.current) / 1000).toFixed(3)} kW — mismatch triggers Layer 2
                                 </p>
                             </div>
 
                             <div>
                                 <label className="block text-sm font-medium text-white/70 mb-2">Timestamp</label>
-                                <input
-                                    type="datetime-local"
-                                    value={customParams.timestamp.slice(0, 16)}
+                                <input type="datetime-local" value={customParams.timestamp.slice(0, 16)}
                                     onChange={(e) => setCustomParams({...customParams, timestamp: new Date(e.target.value).toISOString()})}
-                                    className="w-full bg-[#0a0f1e] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-joulet-indigo"
-                                />
+                                    className="w-full bg-[#0a0f1e] border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-joulet-indigo" />
                                 <p className="text-xs text-white/40 mt-1">
-                                    Daylight hours: 6am-8pm. Hour: {new Date(customParams.timestamp).getHours()}:00
+                                    UTC hour: {new Date(customParams.timestamp).getUTCHours()}:00 — outside 06:00–18:00 triggers Layer 4
                                 </p>
                             </div>
 
                             <div className="bg-joulet-red/10 border border-joulet-red/30 rounded-lg p-4">
                                 <label className="flex items-center gap-3 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={customParams.useInvalidSignature}
+                                    <input type="checkbox" checked={customParams.useInvalidSignature}
                                         onChange={(e) => setCustomParams({...customParams, useInvalidSignature: e.target.checked})}
-                                        className="w-5 h-5 rounded border-2 border-joulet-red/50 bg-[#0a0f1e] checked:bg-joulet-red checked:border-joulet-red focus:outline-none cursor-pointer"
-                                    />
+                                        className="w-5 h-5 rounded border-2 border-joulet-red/50 bg-[#0a0f1e] checked:bg-joulet-red checked:border-joulet-red focus:outline-none cursor-pointer" />
                                     <div>
                                         <span className="text-sm font-medium text-white">Use Invalid Signature</span>
-                                        <p className="text-xs text-white/50 mt-0.5">Triggers forgery detection (ECDSA verification fails)</p>
+                                        <p className="text-xs text-white/50 mt-0.5">Forces zeroed ECDSA sig → triggers Layer 1 cryptographic failure</p>
                                     </div>
                                 </label>
                             </div>
                         </div>
 
                         <div className="border-t border-white/10 p-5 flex gap-3">
-                            <button
-                                onClick={() => setShowCustomModal(false)}
-                                className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white py-3 rounded-xl font-semibold transition-colors"
-                            >
+                            <button onClick={() => setShowCustomModal(false)}
+                                className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 text-white/80 hover:text-white py-3 rounded-xl font-semibold transition-colors">
                                 Cancel
                             </button>
-                            <button
-                                onClick={executeAttack}
-                                disabled={isAttacking}
-                                className="flex-1 bg-joulet-red hover:bg-joulet-red/80 text-white py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
+                            <button onClick={executeAttack} disabled={isAttacking}
+                                className="flex-1 bg-joulet-red hover:bg-joulet-red/80 text-white py-3 rounded-xl font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                                 Execute Attack
                             </button>
                         </div>
@@ -429,17 +418,17 @@ export default function AttackPanel() {
     );
 }
 
-function AttackButton({ icon, label, onClick, disabled }: any) {
+function AttackButton({ icon, label, sublabel, onClick, disabled }: any) {
     return (
-        <button
-            onClick={onClick}
-            disabled={disabled}
-            className="flex items-center gap-3 bg-[#0a0f1e] hover:bg-joulet-red/20 border border-joulet-red/20 hover:border-joulet-red/50 text-white/80 hover:text-white p-4 rounded-xl transition-all text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed group text-left"
-        >
+        <button onClick={onClick} disabled={disabled}
+            className="flex items-center gap-3 bg-[#0a0f1e] hover:bg-joulet-red/20 border border-joulet-red/20 hover:border-joulet-red/50 text-white/80 hover:text-white p-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed group text-left">
             <div className="w-10 h-10 rounded-lg bg-joulet-red/10 flex items-center justify-center text-joulet-red group-hover:bg-joulet-red group-hover:text-[#0a0f1e] transition-colors shrink-0">
                 {icon}
             </div>
-            {label}
+            <div>
+                <div className="text-sm font-semibold">{label}</div>
+                {sublabel && <div className="text-[10px] text-white/40 mt-0.5">{sublabel}</div>}
+            </div>
         </button>
     );
 }

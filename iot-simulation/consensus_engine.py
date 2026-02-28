@@ -254,6 +254,26 @@ def receive_vote():
     return jsonify({"status": "vote locked"}), 200
 
 
+@app.route('/api/consensus/reset', methods=['POST'])
+def reset_consensus():
+    """Reset all consensus state — called by api_bridge on demo reset"""
+    global difficulty_threshold, difficulty_history, last_submission_time
+    global batch_accumulated_kwh, batch_readings, total_energy_reported, total_batch_count
+    global pending_votes
+
+    with pending_lock:
+        pending_votes.clear()
+    difficulty_threshold = 5.0
+    difficulty_history = []
+    last_submission_time = time.time()
+    batch_accumulated_kwh = 0.0
+    batch_readings = []
+    total_energy_reported = 0.0
+    total_batch_count = 0
+    print("[CONSENSUS] 🔄 Full state reset.")
+    return jsonify({"message": "Consensus state reset"}), 200
+
+
 @app.route('/api/consensus/status', methods=['GET'])
 def get_status():
     """Returns engine metrics for Dashboard UI updates"""

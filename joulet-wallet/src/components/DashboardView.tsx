@@ -83,7 +83,7 @@ const DashboardView: React.FC = () => {
                         <span className="text-[10px] text-slate-400 mt-1 uppercase tracking-wider">IoT Device</span>
                         {isProducer && pendingEnergy > 0 && (
                             <div className="mt-3 px-2 py-0.5 bg-joulet-amber/10 border border-joulet-amber/20 text-joulet-amber text-[10px] rounded animate-pulse">
-                                + {(pendingEnergy / 3600).toFixed(4)} kW Flowing
+                                +{pendingEnergy.toFixed(3)} kWh queued
                             </div>
                         )}
                     </div>
