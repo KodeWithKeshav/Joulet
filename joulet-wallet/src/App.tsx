@@ -10,6 +10,8 @@ import DashboardView from './components/DashboardView';
 import ConfirmModal from './components/ConfirmModal';
 import LoginScreen from './components/LoginScreen';
 import IntroOverlay from './components/IntroOverlay';
+import ChatBot from './components/ChatBot';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { RadioTower, AlertTriangle, LayoutDashboard, LogOut } from 'lucide-react';
 import { HARDHAT_PROFILES } from './core/keyManager';
 
@@ -165,12 +167,12 @@ function App() {
 
         <div className="flex-1 overflow-y-auto no-scrollbar relative p-4 lg:p-8 w-full max-w-5xl mx-auto flex flex-col">
           <div className="w-full flex-1 bg-[#0f172a]/60 backdrop-blur-xl rounded-2xl border border-white/5 relative overflow-hidden">
-            {activeTab === 'dashboard' && <DashboardView />}
-            {activeTab === 'assets' && <AssetView />}
-            {activeTab === 'activity' && <ActivityView />}
-            {activeTab === 'devices' && <DeviceView />}
-            {activeTab === 'security' && <AttackView />}
-            {activeTab === 'grid' && <div className="xl:hidden h-full"><GridStatusView /></div>}
+            {activeTab === 'dashboard' && <ErrorBoundary label="Dashboard"><DashboardView /></ErrorBoundary>}
+            {activeTab === 'assets' && <ErrorBoundary label="Assets"><AssetView /></ErrorBoundary>}
+            {activeTab === 'activity' && <ErrorBoundary label="Activity"><ActivityView /></ErrorBoundary>}
+            {activeTab === 'devices' && <ErrorBoundary label="Devices"><DeviceView /></ErrorBoundary>}
+            {activeTab === 'security' && <ErrorBoundary label="Security"><AttackView /></ErrorBoundary>}
+            {activeTab === 'grid' && <div className="xl:hidden h-full"><ErrorBoundary label="Grid"><GridStatusView /></ErrorBoundary></div>}
           </div>
         </div>
 
@@ -184,7 +186,7 @@ function App() {
 
       {/* Right Sidebar - Grid Dashboard */}
       <aside className="hidden xl:flex w-[380px] 2xl:w-[440px] flex-col border-l border-white/5 bg-[#0f172a]/60 backdrop-blur-xl shrink-0 z-20 overflow-y-auto no-scrollbar">
-        <GridStatusView isStandalone={true} />
+        <ErrorBoundary label="Network Analytics"><GridStatusView isStandalone={true} /></ErrorBoundary>
       </aside>
 
       {/* Confirm Transaction Modal */}
@@ -195,6 +197,11 @@ function App() {
         merkleRoot={mockMerkle}
         onSuccess={() => setIsModalOpen(false)}
       />
+
+      {/* Floating AI Chatbot — only shown when logged in */}
+      <ErrorBoundary label="ChatBot" fallback={<></>}>
+        <ChatBot onNavigate={(tab) => setActiveTab(tab as any)} />
+      </ErrorBoundary>
 
     </div>
   );
