@@ -1,0 +1,265 @@
+
+======================================================================
+fig5_latency_breakdown.py
+======================================================================
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig5_latency_breakdown.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig5_latency_breakdown.pdf
+
+=== fig5 summary stats (ms) ===
+A_high:
+  ECDSA sign: n=1459 mean=13.271 std=3.761 p50=13.504 p95=19.042 p99=20.315 min=4.302 max=56.897
+  Transport: n=1459 mean=4.318 std=2.173 p50=4.166 p95=6.230 p99=8.039 min=1.557 max=56.404
+  Oracle validate: n=1459 mean=15.283 std=3.304 p50=15.507 p95=20.162 p99=21.229 min=6.893 max=28.065
+  Consensus: n=1459 mean=1.258 std=0.783 p50=1.068 p95=2.518 p99=4.861 min=0.437 max=10.042
+  Mint tx confirm: n=1383 mean=4.385 std=1.220 p50=4.239 p95=5.617 p99=10.672 min=2.555 max=15.849
+  ARD batch accumulation: n=1383 mean=5213.997 std=4668.182 p50=4031.077 p95=14449.849 p99=17382.547 min=0.120 max=20897.700
+B_low:
+  ECDSA sign: n=1728 mean=13.063 std=3.789 p50=13.379 p95=19.189 p99=20.470 min=4.366 max=26.450
+  Transport: n=1728 mean=4.168 std=1.356 p50=4.068 p95=6.299 p99=7.954 min=1.457 max=19.276
+  Oracle validate: n=1728 mean=15.014 std=3.468 p50=15.313 p95=19.965 p99=21.000 min=6.824 max=40.746
+  Consensus: n=1728 mean=1.290 std=0.942 p50=1.063 p95=2.876 p99=4.694 min=0.392 max=21.949
+  Mint tx confirm: n=1621 mean=4.605 std=1.753 p50=4.245 p95=8.158 p99=12.222 min=2.769 max=18.900
+  ARD batch accumulation: n=1621 mean=7546.059 std=5622.586 p50=6407.024 p95=18006.670 p99=21122.992 min=0.157 max=22797.552
+C_volatile:
+  ECDSA sign: n=1683 mean=13.087 std=3.873 p50=13.154 p95=19.344 p99=20.439 min=4.334 max=38.165
+  Transport: n=1683 mean=4.224 std=1.381 p50=4.151 p95=6.217 p99=7.482 min=1.487 max=18.990
+  Oracle validate: n=1683 mean=15.141 std=3.441 p50=15.353 p95=20.025 p99=20.947 min=6.923 max=31.935
+  Consensus: n=1683 mean=1.278 std=0.905 p50=1.068 p95=2.634 p99=5.018 min=0.363 max=20.917
+  Mint tx confirm: n=1624 mean=4.509 std=1.145 p50=4.332 p95=6.771 p99=8.950 min=2.550 max=9.670
+  ARD batch accumulation: n=1624 mean=6356.232 std=5316.805 p50=5155.995 p95=16684.832 p99=20290.020 min=0.123 max=24105.656
+D_ramp:
+  ECDSA sign: n=713 mean=13.683 std=3.703 p50=13.752 p95=19.452 p99=20.793 min=4.323 max=22.037
+  Transport: n=713 mean=4.651 std=1.735 p50=4.575 p95=6.666 p99=10.409 min=1.490 max=23.477
+  Oracle validate: n=713 mean=15.838 std=3.448 p50=15.794 p95=20.465 p99=21.495 min=7.128 max=30.115
+  Consensus: n=713 mean=1.291 std=0.782 p50=1.098 p95=2.536 p99=5.138 min=0.494 max=6.621
+  Mint tx confirm: n=686 mean=4.462 std=0.920 p50=4.541 p95=5.908 p99=7.980 min=2.575 max=8.453
+  ARD batch accumulation: n=686 mean=6663.905 std=6113.808 p50=5183.857 p95=20676.967 p99=27573.031 min=0.161 max=28953.530
+
+======================================================================
+fig6_latency_cdf.py
+======================================================================
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig6_latency_cdf.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig6_latency_cdf.pdf
+
+=== fig6 summary stats (s) ===
+  A_high: n=1383 mean=5.257 std=4.669 p50=4.078 p95=14.501 p99=17.422 min=0.022 max=20.948
+  B_low: n=1621 mean=7.589 std=5.623 p50=6.442 p95=18.062 p99=21.172 min=0.022 max=22.834
+  C_volatile: n=1624 mean=6.399 std=5.318 p50=5.195 p95=16.729 p99=20.330 min=0.023 max=24.154
+  D_ramp: n=686 mean=6.709 std=6.115 p50=5.224 p95=20.721 p99=27.634 min=0.023 max=28.999
+  POOLED: n=5314 mean=6.505 std=5.435 p50=5.241 p95=16.948 p99=21.285 min=0.022 max=28.999
+
+======================================================================
+fig7_convergence_boxplot.py
+======================================================================
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig7_convergence_boxplot.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig7_convergence_boxplot.pdf
+
+=== fig7 summary stats (s) ===
+  A_high: n=8 mean=91.875 std=19.500 p50=91.954 p95=118.184 p99=120.557 min=66.430 max=121.150
+  B_low: n=10 mean=68.626 std=7.864 p50=68.695 p95=79.477 p99=80.347 min=58.858 max=80.565
+  C_volatile: n=10 mean=84.886 std=11.872 p50=82.364 p95=100.456 p99=102.328 min=70.433 max=102.796
+  D_ramp: n=9 mean=113.284 std=6.625 p50=117.251 p95=118.316 p99=118.421 min=103.756 max=118.447
+
+======================================================================
+fig8_gas_comparison_errorbars.py
+======================================================================
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig8_gas_comparison_errorbars.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig8_gas_comparison_errorbars.pdf
+
+=== fig8 summary stats ===
+Direct Push (excluded 3 degraded trials):
+  readings=116, dur=120.7s
+  readings=116, dur=120.7s
+  gas_per_hour: n=2 mean=381663383.178 std=9970.580 p50=381663383.178 p95=381669728.417 p99=381670292.438 min=381656332.913 max=381670433.443
+  tx_per_min: n=2 mean=57.680 std=0.002 p50=57.680 p95=57.681 p99=57.682 min=57.679 max=57.682
+  gas_per_kwh: n=2 mean=28900.849 std=0.000 p50=28900.849 p95=28900.849 p99=28900.849 min=28900.849 max=28900.849
+  gas_per_tx: n=2 mean=110280.905 std=0.000 p50=110280.905 p95=110280.905 p99=110280.905 min=110280.905 max=110280.905
+Static Batch (10 kWh) (excluded 3 degraded trials):
+  readings=119, dur=120.9s
+  readings=119, dur=120.7s
+  gas_per_hour: n=2 mean=124035613.213 std=91239.190 p50=124035613.213 p95=124093677.478 p99=124098838.746 min=123971097.363 max=124100129.063
+  tx_per_min: n=2 mean=17.880 std=0.013 p50=17.880 p95=17.888 p99=17.889 min=17.871 max=17.889
+  gas_per_kwh: n=2 mean=9308.309 std=0.000 p50=9308.309 p95=9308.309 p99=9308.309 min=9308.309 max=9308.309
+  gas_per_tx: n=2 mean=115619.028 std=0.000 p50=115619.028 p95=115619.028 p99=115619.028 min=115619.028 max=115619.028
+Joulet ARD (excluded 3 degraded trials):
+  readings=114, dur=122.1s
+  readings=114, dur=122.1s
+  gas_per_hour: n=2 mean=69275709.757 std=30693.886 p50=69275709.757 p95=69295243.226 p99=69296979.535 min=69254005.902 max=69297413.612
+  tx_per_min: n=2 mean=7.862 std=0.004 p50=7.862 p95=7.865 p99=7.865 min=7.860 max=7.865
+  gas_per_kwh: n=2 mean=5418.472 std=0.039 p50=5418.472 p95=5418.496 p99=5418.499 min=5418.444 max=5418.499
+  gas_per_tx: n=2 mean=146850.062 std=1.061 p50=146850.062 p95=146850.737 p99=146850.797 min=146849.312 max=146850.812
+
+======================================================================
+fig9_ttarget_sensitivity.py
+======================================================================
+
+=== fig9 summary stats ===
+ttarget 30: active_dur=564.3s, input rate r=0.4496 kWh/s, D*=13.5, mints=15
+    D_t (all samples): n=16 mean=14.033 std=5.131 p50=16.065 p95=18.812 p99=20.962 min=5.000 max=21.499
+    mint interval (s): n=14 mean=38.138 std=37.222 p50=27.568 p95=101.577 p99=147.882 min=17.785 max=159.459
+ttarget 60: active_dur=562.5s, input rate r=0.4510 kWh/s, D*=27.1, mints=12
+    D_t (all samples): n=13 mean=18.081 std=11.512 p50=14.930 p95=37.150 p99=37.150 min=5.000 max=37.150
+    mint interval (s): n=11 mean=33.325 std=21.795 p50=24.435 p95=68.280 p99=89.121 min=18.235 max=94.332
+ttarget 120: active_dur=982.6s, input rate r=0.2834 kWh/s, D*=34.0, mints=13
+    D_t (all samples): n=14 mean=19.868 std=12.989 p50=16.423 p95=39.751 p99=43.615 min=5.000 max=44.581
+    mint interval (s): n=12 mean=79.361 std=160.612 p50=27.484 p95=315.388 p99=531.097 min=17.791 max=585.025
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig9_ttarget_sensitivity.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig9_ttarget_sensitivity.pdf
+
+======================================================================
+fig10_lyapunov_phase_portrait.py
+======================================================================
+
+=== fig10 summary stats ===
+A_high: 187 transitions, fraction non-expanding=0.690
+    V(D_t) final third: n=70 mean=0.033 std=0.052 p50=0.014 p95=0.177 p99=0.194 min=0.000 max=0.194
+B_low: 127 transitions, fraction non-expanding=0.843
+    V(D_t) final third: n=50 mean=0.011 std=0.015 p50=0.000 p95=0.040 p99=0.040 min=0.000 max=0.040
+C_volatile: 179 transitions, fraction non-expanding=0.726
+    V(D_t) final third: n=69 mean=0.018 std=0.024 p50=0.000 p95=0.059 p99=0.093 min=0.000 max=0.093
+D_ramp: 126 transitions, fraction non-expanding=0.722
+    V(D_t) final third: n=50 mean=0.026 std=0.043 p50=0.000 p95=0.093 p99=0.194 min=0.000 max=0.194
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig10_lyapunov_phase_portrait.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig10_lyapunov_phase_portrait.pdf
+
+======================================================================
+fig11_attack_timeline.py
+======================================================================
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig11_attack_timeline.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig11_attack_timeline.pdf
+
+=== fig11 summary stats ===
+  detection latency (ms): n=40 mean=55.336 std=24.577 p50=50.092 p95=99.999 p99=118.504 min=18.497 max=129.547
+  stake before: n=10 mean=0.610 std=0.077 p50=0.550 p95=0.700 p99=0.700 min=0.550 max=0.700
+  stake after: n=10 mean=0.100 std=0.000 p50=0.100 p95=0.100 p99=0.100 min=0.100 max=0.100
+  injections=40, slashes matched=40
+
+======================================================================
+fig12_stake_trajectories.py
+======================================================================
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig12_stake_trajectories.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig12_stake_trajectories.pdf
+
+=== fig12 summary stats ===
+  slash events: 9
+  oracle_1: final stake=1.00 (from 1.00)
+  oracle_2: final stake=1.00 (from 1.00)
+  oracle_3: final stake=1.00 (from 1.00)
+  oracle_4: final stake=0.10 (from 1.00)
+  slash inter-arrival (s): n=8 mean=1.369 std=0.541 p50=1.555 p95=1.577 p99=1.577 min=0.031 max=1.578
+
+======================================================================
+fig13_scalability_throughput.py
+======================================================================
+
+=== fig13 summary stats ===
+scale_01: submitted/min=28.8 verified/min=28.8 mint tx/min=5.85 gas/hour=49,250,116
+    agreement latency (ms): n=59 mean=1.064 std=0.493 p50=0.979 p95=1.731 p99=3.000 min=0.450 max=3.392
+scale_05: submitted/min=141.7 verified/min=141.7 mint tx/min=10.64 gas/hour=102,549,824
+    agreement latency (ms): n=293 mean=1.417 std=0.886 p50=1.273 p95=2.350 p99=3.983 min=0.535 max=12.086
+scale_10: submitted/min=283.0 verified/min=283.0 mint tx/min=15.96 gas/hour=166,133,766
+    agreement latency (ms): n=585 mean=1.765 std=1.951 p50=1.359 p95=3.881 p99=10.664 min=0.229 max=26.056
+scale_20: submitted/min=560.2 verified/min=560.2 mint tx/min=26.66 gas/hour=289,884,459
+    agreement latency (ms): n=1156 mean=4.847 std=6.226 p50=2.114 p95=18.253 p99=28.639 min=0.212 max=43.560
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig13_scalability_throughput.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig13_scalability_throughput.pdf
+
+======================================================================
+fig14_zk_overhead.py
+======================================================================
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig14_zk_overhead.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig14_zk_overhead.pdf
+
+=== fig14 summary stats ===
+NOTE: proof generation time comes from the repo's MOCK (sleep-based) prover.
+  plain mint_ms: n=10 mean=9.699 std=0.727 p50=9.523 p95=10.795 p99=11.048 min=8.748 max=11.111
+  zk mint_ms: n=10 mean=15.137 std=3.407 p50=13.850 p95=19.880 p99=19.915 min=11.696 max=19.923
+  zk proof_gen_ms (mock): n=10 mean=3511.991 std=3.058 p50=3511.792 p95=3516.187 p99=3516.450 min=3505.751 max=3516.516
+  zk verify_call_ms: n=10 mean=18.925 std=8.700 p50=19.782 p95=31.545 p99=35.262 min=7.874 max=36.191
+  plain mint gas: n=10 mean=111520.000 std=16344.571 p50=106670.000 p95=134885.000 p99=153353.000 min=103870.000 max=157970.000
+  zk verify tx gas: n=10 mean=26544.000 std=0.000 p50=26544.000 p95=26544.000 p99=26544.000 min=26544.000 max=26544.000
+
+======================================================================
+fig15_consensus_latency.py
+======================================================================
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig15_consensus_latency.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig15_consensus_latency.pdf
+
+=== fig15 summary stats (ms) ===
+  n=1: n=86 mean=0.029 std=0.052 p50=0.023 p95=0.027 p99=0.125 min=0.015 max=0.501
+  n=3: n=86 mean=1.677 std=2.176 p50=1.351 p95=2.514 p99=7.534 min=0.691 max=20.653
+  n=5: n=86 mean=4.514 std=1.373 p50=4.576 p95=6.866 p99=8.006 min=2.257 max=9.317
+  n=7: n=85 mean=5.712 std=1.309 p50=5.674 p95=7.590 p99=8.786 min=2.761 max=11.978
+
+======================================================================
+fig16_fraud_confusion_matrix.py
+======================================================================
+
+=== fig16 summary stats ===
+TP=40, FP=30, TN=20, FN=0
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig16_fraud_confusion_matrix.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig16_fraud_confusion_matrix.pdf
+
+======================================================================
+fig17_precision_recall.py
+======================================================================
+
+=== fig17 summary stats ===
+Precision=0.571, Recall=1.000, F1=0.727
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig17_precision_recall.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig17_precision_recall.pdf
+
+======================================================================
+fig18_trust_score_over_time.py
+======================================================================
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig18_trust_score_over_time.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig18_trust_score_over_time.pdf
+
+=== fig18 summary stats ===
+oracle_1 final trust score: 1.00
+oracle_2 final trust score: 1.00
+oracle_3 final trust score: 1.00
+oracle_4 final trust score: 0.10
+
+======================================================================
+fig19_ard_tracking_error.py
+======================================================================
+
+=== fig19 summary stats ===
+A_high: MAE=7.81s, RMSE=8.86s, n=177
+B_low: MAE=5.17s, RMSE=6.05s, n=117
+C_volatile: MAE=6.91s, RMSE=8.06s, n=169
+D_ramp: MAE=2.88s, RMSE=3.42s, n=116
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig19_ard_tracking_error.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig19_ard_tracking_error.pdf
+
+======================================================================
+fig19_ard_tracking_error_60s.py
+======================================================================
+
+=== fig19_60s summary stats ===
+ttarget_60: MAE=32.92s, RMSE=33.81s, n=11
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig19_ard_tracking_error_60s.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig19_ard_tracking_error_60s.pdf
+
+======================================================================
+fig20_uptime_by_node.py
+======================================================================
+
+=== fig20 summary stats ===
+oracle_1 uptime: 100.00%
+oracle_2 uptime: 100.00%
+oracle_3 uptime: 100.00%
+oracle_4 uptime: 44.70%
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig20_uptime_by_node.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig20_uptime_by_node.pdf
+
+======================================================================
+fig21_sustained_throughput.py
+======================================================================
+
+=== fig21 summary stats ===
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig21_sustained_throughput.png
+saved /Users/keshavs/Desktop/Joulet_Beta/paper_experiments/figures/fig21_sustained_throughput.pdf
+Max throughput: 44.0 tx/min
+Steady throughput (last 60s): 12.3 tx/min

@@ -14,6 +14,12 @@ from eth_account import Account
 import os
 from dotenv import load_dotenv
 
+try:
+    from metrics_logger import log_event
+except ImportError:
+    def log_event(stage, **fields):
+        pass
+
 # Load environment variables
 load_dotenv()
 
@@ -148,15 +154,20 @@ class SolarOracle:
             
             # Send transaction
             raw_tx = getattr(signed_txn, 'raw_transaction', getattr(signed_txn, 'rawTransaction', None))
+            t_sent = time.time()
             tx_hash = self.w3.eth.send_raw_transaction(raw_tx)
-            
+            log_event("mint_tx_sent", tx_hash=tx_hash.hex(), kwh=kwh_amount)
+
             print(f"⚡ Energy report submitted: {kwh_amount:.2f} kWh (Root: {merkle_root})")
             print(f"   Transaction hash: {tx_hash.hex()}")
-            
+
             # Wait for confirmation
             receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash, timeout=120)
-            
+
             if receipt['status'] == 1:
+                log_event("mint_tx_confirmed", tx_hash=tx_hash.hex(), kwh=kwh_amount,
+                          gas_used=receipt['gasUsed'], block_number=receipt['blockNumber'],
+                          confirm_duration_ms=(time.time() - t_sent) * 1000.0)
                 print(f"✓ Transaction confirmed in block {receipt['blockNumber']}")
                 return True
             else:

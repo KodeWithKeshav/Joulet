@@ -23,13 +23,24 @@ from datetime import datetime
 import requests
 import time
 
+from metrics_logger import log_event, payload_sig_id
+
 app = Flask(__name__)
 CORS(app)
 
 # Configured at startup
 NODE_ID = "oracle_1"
-CONSENSUS_ENGINE_URL = "http://127.0.0.1:5010"
+CONSENSUS_ENGINE_URL = os.getenv("CONSENSUS_ENGINE_URL", "http://127.0.0.1:5010")
 INTERNAL_API_KEY = os.getenv('INTERNAL_API_KEY', 'joulet_internal_secret_key')
+
+# Experiment flags
+# JOULET_SKIP_WEATHER=1 skips the live Open-Meteo HTTP call (its result is
+# unused in the MVP check anyway) so external network latency does not
+# pollute stage-latency measurements.
+SKIP_WEATHER = os.getenv("JOULET_SKIP_WEATHER", "0") in ("1", "true")
+# MALICIOUS mode: node votes the opposite of its own validation result
+# (Byzantine/contrarian oracle) - used for reputation-slashing experiments.
+MALICIOUS = False
 
 # Load dynamic device registry from JSON (simulating blockchain/database registry)
 AUTHORIZED_DEVICES = {}
@@ -54,6 +65,8 @@ def get_weather_multiplier(timestamp_str, location="simulated"):
     Real Check 5: Matches external weather API.
     Queries Open-Meteo for live cloud cover at a realistic solar farm location (e.g. California Desert).
     """
+    if SKIP_WEATHER:
+        return 1.0
     try:
         response = requests.get("https://api.open-meteo.com/v1/forecast?latitude=35.0&longitude=-119.0&current=cloud_cover", timeout=3)
         if response.status_code == 200:
@@ -179,10 +192,25 @@ def submit_reading():
          
     payload = data['payload']
     signature = data['signature']
-    
+
+    sig_id = payload_sig_id(payload)
+    received_ms = time.time() * 1000.0
+    log_event("oracle_received", sig_id=sig_id, oracle_id=NODE_ID,
+              device_id=payload.get('Device_ID'))
+
     # Run the 5 structural checks
+    t_val = time.time()
     is_valid, reason = run_validations(payload, signature)
-    
+    log_event("oracle_verified", sig_id=sig_id, oracle_id=NODE_ID,
+              valid=is_valid, reason=reason,
+              validation_duration_ms=(time.time() - t_val) * 1000.0,
+              received_ms=received_ms)
+
+    if MALICIOUS:
+        # Byzantine node: vote the opposite of the honest validation outcome
+        is_valid = not is_valid
+        reason = f"MALICIOUS_INVERTED ({reason})"
+
     if is_valid:
         # Forward to Consensus Engine
         try:
@@ -197,6 +225,7 @@ def submit_reading():
              # Send it async or fire-and-forget for this demo
              try:
                  requests.post(f"{CONSENSUS_ENGINE_URL}/api/consensus/vote", json=forward_data, headers={"X-Internal-Key": INTERNAL_API_KEY}, timeout=2)
+                 log_event("oracle_forwarded", sig_id=sig_id, oracle_id=NODE_ID, approval="VALID")
              except requests.exceptions.RequestException:
                  print(f"Warning: Consensus engine unreachable at {CONSENSUS_ENGINE_URL}")
                  
@@ -219,6 +248,7 @@ def submit_reading():
                  "original_payload": payload
              }
              requests.post(f"{CONSENSUS_ENGINE_URL}/api/consensus/vote", json=forward_data, headers={"X-Internal-Key": INTERNAL_API_KEY}, timeout=2)
+             log_event("oracle_forwarded", sig_id=sig_id, oracle_id=NODE_ID, approval="INVALID", reason=reason)
         except:
              pass
              
@@ -232,12 +262,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Run a Joulet Oracle Node')
     parser.add_argument('--port', type=int, default=5001, help='Port to run the node on')
     parser.add_argument('--id', type=str, default='oracle_1', help='Node identifier')
+    parser.add_argument('--malicious', action='store_true',
+                        help='Byzantine mode: vote opposite of own validation (for slashing experiments)')
     args = parser.add_argument_group()
-    
+
     args = parser.parse_args()
-    
+
     PORT = args.port
     NODE_ID = args.id
-    
-    print(f"Starting Oracle Node {NODE_ID} on port {PORT}...")
-    app.run(host='0.0.0.0', port=PORT, debug=False)
+    MALICIOUS = args.malicious
+
+    print(f"Starting Oracle Node {NODE_ID} on port {PORT}..." + (" [MALICIOUS]" if MALICIOUS else ""))
+    app.run(host='0.0.0.0', port=PORT, debug=False, threaded=True)

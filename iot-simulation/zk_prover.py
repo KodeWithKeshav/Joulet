@@ -14,6 +14,8 @@ from web3 import Web3
 import os
 from dotenv import load_dotenv
 
+from metrics_logger import log_event
+
 load_dotenv()
 
 # We can reuse the SolarOracle bridge for contract abstraction or just use web3 directly
@@ -66,6 +68,7 @@ def simulate_zk_snark_generation(data_payload):
     ]
     
     print("✅ [ZK-Prover] Proof Generation Complete.")
+    log_event("zk_proof_generated", device_id=data_payload.get('Device_ID'))
     return True, {"proof": proof, "public_inputs": public_inputs}
 
 def verify_on_chain(oracle, proof_data):

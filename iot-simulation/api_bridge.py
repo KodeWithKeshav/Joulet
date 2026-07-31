@@ -7,6 +7,7 @@ Provides REST API for energy data collection and blockchain interaction
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from solar_oracle import SolarOracle
+from metrics_logger import log_event
 import os
 from dotenv import load_dotenv
 import json
@@ -187,8 +188,12 @@ def process_reading(kwh, device_id='unknown'):
     Returns a dict with status and whether auto-reported.
     """
     with metrics_lock:
+        log_event("bridge_reading_received", device_id=device_id, kwh=float(kwh))
         metrics.current_production = float(kwh)
         metrics.accumulated_energy += float(kwh)
+        log_event("bridge_eacc_updated", device_id=device_id,
+                  accumulated_kwh=metrics.accumulated_energy,
+                  threshold=metrics.reporting_threshold)
 
         # record timestamp for frequency-based difficulty adjustments
         recent_readings.append(time.time())
@@ -225,6 +230,8 @@ def process_reading(kwh, device_id='unknown'):
                 try:
                     # Provide an empty merkle root for legacy auto-reporting
                     empty_root = "0x" + "0"*64
+                    log_event("bridge_mint_called", device_id=device_id, kwh=amount,
+                              threshold=metrics.reporting_threshold)
                     success = oracle.report_energy(PRODUCER_ADDRESS, amount, merkle_root=empty_root)
                     auto_reported = bool(success)
                     if success:

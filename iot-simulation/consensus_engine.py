@@ -23,6 +23,7 @@ from dotenv import load_dotenv
 
 # We can reuse the SolarOracle bridge for contract abstraction or just use web3 directly
 from solar_oracle import SolarOracle
+from metrics_logger import log_event, payload_sig_id
 
 load_dotenv()
 
@@ -38,14 +39,19 @@ CONTRACT_ADDRESS = os.getenv("CONTRACT_ADDRESS", "0x5FbDB2315678afecb367f032d93F
 ORACLE_PRIVATE_KEY = os.getenv("ORACLE_PRIVATE_KEY", "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80")
 PRODUCER_ADDRESS = os.getenv("PRODUCER_ADDRESS", "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
 
-PORT = 5010
+PORT = int(os.getenv("CONSENSUS_PORT", 5010))
 INTERNAL_API_KEY = os.getenv('INTERNAL_API_KEY', 'joulet_internal_secret_key')
 
-# Dynamic difficulty parameters
-DIFF_TARGET_INTERVAL = 15.0 # seconds desired between contract submissions
-difficulty_threshold = 5.0  # start at 5 kWh
+# Dynamic difficulty parameters (env-overridable for experiments)
+DIFF_TARGET_INTERVAL = float(os.getenv("DIFF_TARGET_INTERVAL", 15.0)) # seconds desired between contract submissions
+difficulty_threshold = float(os.getenv("INITIAL_DIFFICULTY", 5.0))  # start at 5 kWh
+# How many oracle-node votes are required before consensus is evaluated
+CONSENSUS_QUORUM = int(os.getenv("CONSENSUS_QUORUM", 3))
 difficulty_history = []
 last_submission_time = time.time()
+
+# sig_id -> timestamp of first vote arrival (for agreement-latency measurement)
+first_vote_ts = {}
 
 # Oracle Reputation Metrics
 # Start at 1.0. Correct block vote = +0.01. Incorrect vote (against majority) = -0.05
@@ -113,9 +119,9 @@ def adjust_difficulty():
     
     now = time.time()
     time_delta = now - last_submission_time
-    
+
     old_diff = difficulty_threshold
-    
+
     if time_delta < DIFF_TARGET_INTERVAL:
          # Submitting batches too fast -> raise the threshold
          difficulty_threshold = min(100.0, difficulty_threshold * 1.2)
@@ -124,7 +130,10 @@ def adjust_difficulty():
          # Too slow -> lower it
          difficulty_threshold = max(0.5, difficulty_threshold * 0.8)
          print(f"[DDA] 🐢 Slow submissions ({time_delta:.1f}s). Threshold DOWN: {old_diff:.2f} -> {difficulty_threshold:.2f} kWh")
-         
+
+    log_event("difficulty_adjusted", old_difficulty=old_diff,
+              new_difficulty=difficulty_threshold, time_delta_s=time_delta,
+              target_interval_s=DIFF_TARGET_INTERVAL)
     difficulty_history.append(difficulty_threshold)
     if len(difficulty_history) > 50:
         difficulty_history.pop(0)
@@ -145,7 +154,12 @@ def submit_batch_to_blockchain():
     
     print(f"[CONSENSUS] -> Batch Readings: {len(batch_readings)}")
     print(f"[CONSENSUS] -> Merkle Root: {root}")
-    
+
+    log_event("mint_called", batch_kwh=batch_accumulated_kwh,
+              batch_readings=len(batch_readings),
+              batch_sig_ids=[r["sig_id"] for r in batch_readings],
+              difficulty=difficulty_threshold, merkle_root=root)
+
     try:
         success = oracle.report_energy(PRODUCER_ADDRESS, batch_accumulated_kwh, merkle_root=root)
         if success:
@@ -186,8 +200,13 @@ def receive_vote():
     # We use a primitive string hash as a quick message ID for tracking identical events
     # from the 3 different nodes.
     sig_id = hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
-    
+
+    log_event("consensus_vote_received", sig_id=sig_id, node_id=node_id,
+              approval=approval)
+
     with pending_lock:
+        if sig_id not in first_vote_ts:
+            first_vote_ts[sig_id] = time.time()
         if sig_id not in pending_votes:
             pending_votes[sig_id] = {
                 "VALID": {}, 
@@ -207,10 +226,10 @@ def receive_vote():
         weight = max(0.01, oracle_reputation.get(node_id, 1.0))
         vote_dict[approval][node_id] = weight
         
-        # Check if we have gathered votes from at least 3 nodes (or wait standard timeout)
+        # Check if we have gathered votes from the configured quorum (or wait standard timeout)
         total_votes_received = len(vote_dict["VALID"]) + len(vote_dict["INVALID"])
-        
-        if total_votes_received >= 3:
+
+        if total_votes_received >= CONSENSUS_QUORUM:
              # Consensus Time!
              vote_dict["processed"] = True
              
@@ -220,17 +239,19 @@ def receive_vote():
              
              is_accepted = False
              
+             reputation_before = dict(oracle_reputation)
+
              if total_weight > 0 and (valid_weight / total_weight) >= 0.66:
                   # Consensus Reached: Accept Reading
                   is_accepted = True
-                  
+
                   power = float(payload.get('Power_kW', 0))
                   global batch_accumulated_kwh
                   batch_accumulated_kwh += power
                   batch_readings.append({"payload": payload, "sig_id": sig_id})
-                  
+
                   print(f"⚖️ Consensus REACHED: VALID ({valid_weight:.2f} vs {invalid_weight:.2f}) -> {power}kW added.")
-                  
+
                   # Distribute Reputation Rewards
                   for nid in vote_dict["VALID"]:
                        oracle_reputation[nid] = min(1.0, oracle_reputation[nid] + 0.02)
@@ -239,13 +260,28 @@ def receive_vote():
              else:
                   # Consensus Reached: Reject Reading
                   print(f"🚨 Consensus REACHED: REJECTED ({valid_weight:.2f} vs {invalid_weight:.2f})")
-                  
+
                   # Reward nodes that rejected bad data
                   for nid in vote_dict["INVALID"]:
                        oracle_reputation[nid] = min(1.0, oracle_reputation[nid] + 0.05)
                   for nid in vote_dict["VALID"]:
                        oracle_reputation[nid] = max(0.1, oracle_reputation[nid] - 0.15)
-                       
+
+             agreement_latency_ms = (time.time() - first_vote_ts.get(sig_id, time.time())) * 1000.0
+             log_event("consensus_reached", sig_id=sig_id, accepted=is_accepted,
+                       valid_weight=valid_weight, invalid_weight=invalid_weight,
+                       quorum=CONSENSUS_QUORUM,
+                       agreement_latency_ms=agreement_latency_ms,
+                       valid_voters=list(vote_dict["VALID"].keys()),
+                       invalid_voters=list(vote_dict["INVALID"].keys()),
+                       reputation_before=reputation_before,
+                       reputation_after=dict(oracle_reputation),
+                       device_id=payload.get('Device_ID'))
+             log_event("eacc_updated", sig_id=sig_id,
+                       accumulated_kwh=batch_accumulated_kwh,
+                       difficulty=difficulty_threshold,
+                       threshold_met=batch_accumulated_kwh >= difficulty_threshold)
+
              # Try to submit to blockchain if threshold crossed
              if batch_accumulated_kwh >= difficulty_threshold:
                   submit_batch_to_blockchain()
@@ -284,6 +320,6 @@ if __name__ == "__main__":
     print("="*60 + "\n")
     
     if initialize_oracle():
-        app.run(host='0.0.0.0', port=PORT, debug=False)
+        app.run(host='0.0.0.0', port=PORT, debug=False, threaded=True)
     else:
         print("✗ Failed to load blockchain bridge.")

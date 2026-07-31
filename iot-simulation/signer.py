@@ -10,6 +10,9 @@ from eth_account.messages import encode_defunct
 import json
 import csv
 import os
+import time
+
+from metrics_logger import log_event, payload_sig_id
 
 # Load private keys from configuration
 PRIVATE_KEYS = {}
@@ -25,10 +28,17 @@ def sign_data(private_key_hex, data_dict):
     Returns the signature hex string.
     """
     # Sort keys for deterministic JSON serialization
+    t0 = time.time()
     message_str = json.dumps(data_dict, sort_keys=True)
     message = encode_defunct(text=message_str)
-    
+
     signed_message = Web3().eth.account.sign_message(message, private_key=private_key_hex)
+    log_event(
+        "packet_signed",
+        sig_id=payload_sig_id(data_dict),
+        device_id=data_dict.get("Device_ID"),
+        sign_duration_ms=(time.time() - t0) * 1000.0,
+    )
     return signed_message.signature.hex()
 
 def process_csv(csv_path):
