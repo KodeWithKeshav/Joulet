@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import "./OracleRegistry.sol";
 
 /**
  * @title JouletToken
@@ -122,6 +123,110 @@ contract JouletToken is ERC20, Ownable {
         }
         
         emit EnergyReported(batchId, producerWallet, kWhAmount, tokensToMint, merkleRoot);
+    }
+
+    // =====================================================================
+    //  Quorum-verified settlement path (paper Section IV-E, Algorithm 2)
+    //
+    //  Unlike reportEnergyProduction() above, which trusts one submitter
+    //  address (the original MVP path, kept for backward compatibility),
+    //  this path trusts no submitter: it re-verifies the oracle signatures
+    //  on-chain with ecrecover, requires a weighted two-thirds quorum of
+    //  staked oracles, enforces a monotonic timestamp and the physical
+    //  bound  E <= kappa * P_rated * dt / 1000  (kJ), and slashes the
+    //  signers of a batch that violates the bound. 1 JLT = 1 kJ.
+    // =====================================================================
+    OracleRegistry public registry;
+    uint256 public kappaBps = 10_000;                  // kappa = 1.00
+    uint256 public constant MAX_FUTURE_SKEW = 300;     // seconds
+    mapping(address => uint256) public deviceRatedW;       // producer => registered capacity (W)
+    mapping(address => uint256) public lastBatchTimestamp; // producer => last processed batch time
+    mapping(uint256 => bytes32) public verifiedBatchRoot;  // audit anchor per accepted batch
+    uint256 public verifiedBatchCount;
+
+    struct Batch {
+        address producer;
+        uint256 energyKJ;      // verified energy in kJ (1 JLT per kJ)
+        uint256 dtSeconds;     // time since the previous mint
+        bytes32 merkleRoot;    // root over the signed readings of the batch
+        uint256 timestamp;     // oracle-side batch time (monotonic per producer)
+    }
+
+    event VerifiedBatchMinted(uint256 indexed batchId, address indexed producer, uint256 energyKJ, bytes32 merkleRoot, uint256 signedWeight);
+    event BatchRejectedOverCapacity(address indexed producer, uint256 energyKJ, uint256 boundKJ, uint256 slashedOracles);
+
+    function setRegistry(address registry_) external onlyOwner {
+        registry = OracleRegistry(registry_);
+    }
+
+    function registerDevice(address producer, uint256 ratedW) external onlyOwner {
+        require(ratedW > 0, "zero capacity");
+        deviceRatedW[producer] = ratedW;
+    }
+
+    function setKappaBps(uint256 kappaBps_) external onlyOwner {
+        require(kappaBps_ >= 10_000 && kappaBps_ <= 20_000, "kappa out of range");
+        kappaBps = kappaBps_;
+    }
+
+    /// @notice Physical bound in kJ: kappa * P_rated(W) * dt(s) / 1000.
+    function physicalBoundKJ(address producer, uint256 dtSeconds) public view returns (uint256) {
+        return (kappaBps * deviceRatedW[producer] * dtSeconds) / (10_000 * 1000);
+    }
+
+    /// @notice Digest the oracles sign for a batch (domain-separated by chain and contract).
+    function batchDigest(Batch calldata b) public view returns (bytes32) {
+        return keccak256(abi.encode(block.chainid, address(this), b.producer, b.energyKJ, b.dtSeconds, b.merkleRoot, b.timestamp));
+    }
+
+    /**
+     * @notice Settle a batch attested by a weighted two-thirds quorum of staked oracles.
+     * @return minted true if JLT was minted, false if the batch violated the
+     *         physical bound (its signers are slashed and nothing is minted).
+     */
+    function reportVerifiedBatch(Batch calldata b, bytes[] calldata sigs) external returns (bool minted) {
+        require(address(registry) != address(0), "registry unset");
+        require(deviceRatedW[b.producer] > 0, "unregistered device");
+        require(b.energyKJ > 0 && b.dtSeconds > 0, "empty batch");
+        require(b.timestamp > lastBatchTimestamp[b.producer], "stale timestamp");
+        require(b.timestamp <= block.timestamp + MAX_FUTURE_SKEW, "future timestamp");
+
+        (uint256 signedW, address[] memory signers) = _collectSigners(b, sigs);
+        require(signedW * 3 > registry.totalWeight() * 2, "quorum not reached");
+
+        // Advance the clock before any slash so that a replay cannot slash twice.
+        lastBatchTimestamp[b.producer] = b.timestamp;
+
+        uint256 boundKJ = physicalBoundKJ(b.producer, b.dtSeconds);
+        if (b.energyKJ > boundKJ) {
+            for (uint256 i = 0; i < signers.length; i++) registry.slash(signers[i]);
+            emit BatchRejectedOverCapacity(b.producer, b.energyKJ, boundKJ, signers.length);
+            return false;
+        }
+
+        _mint(b.producer, b.energyKJ * 10 ** decimals());
+        uint256 id = verifiedBatchCount++;
+        verifiedBatchRoot[id] = b.merkleRoot;
+        for (uint256 i = 0; i < signers.length; i++) registry.reward(signers[i]);
+        emit VerifiedBatchMinted(id, b.producer, b.energyKJ, b.merkleRoot, signedW);
+        return true;
+    }
+
+    function _collectSigners(Batch calldata b, bytes[] calldata sigs)
+        private
+        view
+        returns (uint256 w, address[] memory signers)
+    {
+        bytes32 digest = batchDigest(b).toEthSignedMessageHash();
+        signers = new address[](sigs.length);
+        for (uint256 i = 0; i < sigs.length; i++) {
+            address s = ECDSA.recover(digest, sigs[i]);
+            uint256 ws = registry.weightOf(s);
+            require(ws > 0, "signer not active");
+            for (uint256 j = 0; j < i; j++) require(signers[j] != s, "duplicate signer");
+            signers[i] = s;
+            w += ws;
+        }
     }
 
     function redeemEnergy(uint256 amount) public {
