@@ -1,0 +1,116 @@
+{
+  "gas_direct": {
+    "name": "Direct Push",
+    "trials_total": 8,
+    "trials_clean": 5,
+    "readings_per_clean_trial": [
+      116,
+      116,
+      116,
+      116,
+      116
+    ],
+    "readings_per_excluded_trial": [
+      16,
+      38,
+      79
+    ],
+    "duration_s": [
+      120.6,
+      120.7,
+      120.7,
+      120.8,
+      120.8
+    ],
+    "tx_per_clean_trial": [
+      116,
+      116,
+      116,
+      116,
+      116
+    ],
+    "gas_per_hour_mean": 381559532.87192667,
+    "gas_per_hour_sd": 199425.98999904766,
+    "gas_per_unit_energy_mean": 28900.848776762905,
+    "gas_per_tx_mean": 110280.9051724138,
+    "gas_per_tx_sd": 16381.960222299906,
+    "gas_per_tx_first": 157970,
+    "reduction_vs_direct_pct": 0.0
+  },
+  "gas_static": {
+    "name": "Static Batch",
+    "trials_total": 8,
+    "trials_clean": 5,
+    "readings_per_clean_trial": [
+      119,
+      119,
+      119,
+      119,
+      119
+    ],
+    "readings_per_excluded_trial": [
+      13,
+      38,
+      80
+    ],
+    "duration_s": [
+      120.7,
+      120.8,
+      120.8,
+      120.8,
+      120.9
+    ],
+    "tx_per_clean_trial": [
+      36,
+      36,
+      36,
+      36,
+      36
+    ],
+    "gas_per_hour_mean": 124052015.94836266,
+    "gas_per_hour_sd": 51266.7515466553,
+    "gas_per_unit_energy_mean": 9308.309367158809,
+    "gas_per_tx_mean": 115619.02777777778,
+    "gas_per_tx_sd": 26431.34964698616,
+    "gas_per_tx_first": 157970,
+    "reduction_vs_direct_pct": 67.48816232826198
+  },
+  "gas_ard": {
+    "name": "Joulet ARD",
+    "trials_total": 8,
+    "trials_clean": 5,
+    "readings_per_clean_trial": [
+      114,
+      114,
+      115,
+      115,
+      115
+    ],
+    "readings_per_excluded_trial": [
+      36,
+      37,
+      77
+    ],
+    "duration_s": [
+      122.1,
+      122.1,
+      122.5,
+      122.7,
+      122.7
+    ],
+    "tx_per_clean_trial": [
+      16,
+      16,
+      16,
+      16,
+      16
+    ],
+    "gas_per_hour_mean": 69102641.53359114,
+    "gas_per_hour_sd": 164838.94112590805,
+    "gas_per_unit_energy_mean": 5418.4273155792525,
+    "gas_per_tx_mean": 146848.8625,
+    "gas_per_tx_sd": 36022.01687074935,
+    "gas_per_tx_first": 158354,
+    "reduction_vs_direct_pct": 81.88942076391892
+  }
+}
