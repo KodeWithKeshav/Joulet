@@ -1,0 +1,74 @@
+{
+  "input": {
+    "source": "iot-simulation/mock_data/realistic_sunny.csv",
+    "generator": "iot-simulation/generate_mock_data.py (single-diode PV model, 350 W x 14 panels)",
+    "simulated_day": "2026-02-24",
+    "hour_window": "11:00-12:00",
+    "raw_power_kw": [
+      4.374,
+      4.383,
+      4.396,
+      4.375,
+      4.462,
+      4.408,
+      4.458,
+      4.551,
+      4.521,
+      4.474,
+      4.438,
+      4.439
+    ],
+    "raw_rows_in_hour": 12,
+    "upsampling": "each 5-min CSV row held for 300 consecutive 1 Hz samples (zero-order hold) to build 3600 samples",
+    "seed": 4
+  },
+  "ard_constants": {
+    "T_tgt_s": 60.0,
+    "D_min_kJ": 1.0,
+    "D_max_kJ": 500.0,
+    "D_0_kJ": 10.0,
+    "m_bounds": [
+      0.6,
+      1.4
+    ]
+  },
+  "gas_per_mint_assumed": 70000,
+  "rows": [
+    {
+      "strategy": "Direct Push",
+      "mints": 3600,
+      "gas": 252000000,
+      "interval_min_s": 1.0,
+      "interval_max_s": 1.0,
+      "interval_mean_s": 1.0,
+      "reduction_vs_direct": 0.0
+    },
+    {
+      "strategy": "Static Batch (x100)",
+      "mints": 36,
+      "gas": 2520000,
+      "interval_min_s": 100.0,
+      "interval_max_s": 100.0,
+      "interval_mean_s": 100.0,
+      "reduction_vs_direct": 0.99
+    },
+    {
+      "strategy": "ARD, interval only",
+      "mints": 64,
+      "gas": 4480000,
+      "interval_min_s": 3.0,
+      "interval_max_s": 61.0,
+      "interval_mean_s": 55.890625,
+      "reduction_vs_direct": 0.9822222222222222
+    },
+    {
+      "strategy": "ARD, dual-signal",
+      "mints": 64,
+      "gas": 4480000,
+      "interval_min_s": 3.0,
+      "interval_max_s": 64.0,
+      "interval_mean_s": 55.828125,
+      "reduction_vs_direct": 0.9822222222222222
+    }
+  ]
+}
