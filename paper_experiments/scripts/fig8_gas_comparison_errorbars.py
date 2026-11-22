@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""fig8: on-chain gas cost of Direct Push vs Static Batch (10 kWh fixed
+"""fig8: on-chain gas cost of Direct Push vs Static Batch (10 kJ fixed
 threshold) vs Joulet ARD, identical real input stream (realistic_sunny.csv,
 1 reading/s, 120 s x 5 trials each). Gas from real hardhat receipts.
 
-NOTE: Trials 2-4 suffered degraded throughput (dropped packets / timing
-anomalies) producing 16-79 readings instead of the expected ~116.
-Only the two clean trials (t0, t1) that completed the full 120s window
-at full throughput are included; degraded trials are excluded to avoid
+NOTE: 3 of the 8 trials per arm logged fewer than 100 readings (16-80 instead of
+~116; dropped packets / timing anomalies) and are excluded by the filter below, which
+leaves N=5 clean trials per arm. Energy unit: the accumulator adds Power_kW per reading,
+i.e. kJ at 1 reading/s. Trials last 120 s; 'gas per hour' extrapolates x3600/duration.
+Degraded trials are excluded to avoid
 mixing protocol-cost measurement with infrastructure instability."""
 
 from collections import defaultdict
@@ -19,7 +20,7 @@ import figstyle as F
 F.setup()
 
 ARMS = [("gas_direct", "Direct Push", "#88BBDD"),
-        ("gas_static", "Static Batch (10 kWh)", "#4292C6"),
+        ("gas_static", "Static Batch (10 kJ)", "#4292C6"),
         ("gas_ard", "Joulet ARD", F.ORANGE)]
 
 # (79, 16, 38 readings instead of ~116 for Direct Push).
@@ -64,7 +65,7 @@ x = np.arange(len(ARMS))
 
 for ax, metric, ylab, title, scale in (
         (ax_a, "gas_per_hour", "Gas per hour ($\\times 10^6$)", "(a) Gas consumption rate", 1e6),
-        (ax_b, "gas_per_kwh", "Gas per kWh minted", "(b) Gas per verified kWh", 1)):
+        (ax_b, "gas_per_kwh", "Gas per kJ minted", "(b) Gas per verified kJ", 1)):
     means, stds = [], []
     for label, _, _ in ARMS:
         vals = [r[metric] for r in per_arm[label]]
